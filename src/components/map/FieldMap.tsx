@@ -1,9 +1,8 @@
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents, ZoomControl } from 'react-leaflet'
 import type { FieldLocation } from '@/core'
-import { useTheme } from '@/state/theme'
 
 /** Sokuluk district, Chuy region. */
 export const SOKULUK_CENTER: FieldLocation = { lat: 42.86, lon: 74.3 }
@@ -13,13 +12,27 @@ export const MAX_FLY_ZOOM = 13
 /** Kyrgyzstan, with a little padding. The map cannot be dragged far outside it. */
 const KG_BOUNDS = L.latLngBounds([38.9, 68.9], [43.6, 80.6])
 
-/** CARTO basemaps (OpenStreetMap data): fast CDN, a light and a dark style to match the theme. */
-const TILES = {
-  light: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-}
-const ATTRIBUTION =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+/**
+ * Tile providers, in order. Both need no API key.
+ * OpenStreetMap standard tiles first; Esri World Street Map as automatic backup.
+ * (CARTO was removed: it answers 200 OK with an "API KEY REQUIRED" image.)
+ */
+const PROVIDERS = [
+  {
+    id: 'osm',
+    url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+  },
+  {
+    id: 'esri',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Tiles &copy; Esri &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap contributors',
+    maxZoom: 19,
+  },
+]
+/** After this many failed tiles, switch to the next provider. */
+const MAX_TILE_ERRORS = 3
 
 // A pin drawn with CSS token colours instead of Leaflet's default image.
 const PIN_HTML = `
@@ -49,6 +62,26 @@ function KeepInView({ value }: { value: FieldLocation | null }) {
   return null
 }
 
+/**
+ * The lowest zoom at which Kyrgyzstan still fills the whole map, so zooming out
+ * never shows a small square of tiles on an empty background.
+ */
+function FillMinZoom() {
+  const map = useMap()
+  useEffect(() => {
+    const update = () => {
+      const fill = map.getBoundsZoom(KG_BOUNDS, true)
+      map.setMinZoom(Math.max(7, Math.ceil(fill)))
+    }
+    update()
+    map.on('resize', update)
+    return () => {
+      map.off('resize', update)
+    }
+  }, [map])
+  return null
+}
+
 /** Smoothly moves the map to a place picked from search, GPS or a demo chip. */
 function FlyTo({ target }: { target: FlyTarget | null }) {
   const map = useMap()
@@ -71,43 +104,53 @@ interface FieldMapProps {
   flyTarget?: FlyTarget | null
   /** True while map tiles are downloading (the pin and search work meanwhile). */
   onTilesLoading?: (loading: boolean) => void
+  /** Called when the main tile provider failed and the backup is in use. */
+  onBackupTiles?: () => void
   className?: string
 }
 
-export default function FieldMap({ value, onChange, flyTarget = null, onTilesLoading, className }: FieldMapProps) {
+export default function FieldMap({ value, onChange, flyTarget = null, onTilesLoading, onBackupTiles, className }: FieldMapProps) {
   const icon = useMemo(
     () => L.divIcon({ className: 'field-pin', html: PIN_HTML, iconSize: [40, 48], iconAnchor: [20, 47] }),
     [],
   )
-  const { theme } = useTheme()
+  const [provider, setProvider] = useState(0)
+  const errors = useRef(0)
+  const tiles = PROVIDERS[provider]
 
   return (
     <MapContainer
       center={value ? [value.lat, value.lon] : [SOKULUK_CENTER.lat, SOKULUK_CENTER.lon]}
       zoom={DEFAULT_ZOOM}
       minZoom={7}
-      maxZoom={16}
+      maxZoom={18}
       maxBounds={KG_BOUNDS}
-      maxBoundsViscosity={0.8}
+      maxBoundsViscosity={1}
       scrollWheelZoom
       zoomControl={false}
       className={className}
       attributionControl
     >
       <TileLayer
-        key={theme}
-        url={TILES[theme]}
-        attribution={ATTRIBUTION}
-        subdomains="abcd"
-        detectRetina
+        key={tiles.id}
+        url={tiles.url}
+        attribution={tiles.attribution}
         keepBuffer={4}
-        updateWhenZooming={false}
-        maxZoom={16}
+        maxZoom={tiles.maxZoom}
         eventHandlers={{
           loading: () => onTilesLoading?.(true),
           load: () => onTilesLoading?.(false),
+          tileerror: () => {
+            errors.current += 1
+            if (errors.current > MAX_TILE_ERRORS && provider < PROVIDERS.length - 1) {
+              errors.current = 0
+              setProvider((p) => p + 1)
+              onBackupTiles?.()
+            }
+          },
         }}
       />
+      <FillMinZoom />
       <ClickToPlace onPick={onChange} />
       <KeepInView value={value} />
       <FlyTo target={flyTarget} />

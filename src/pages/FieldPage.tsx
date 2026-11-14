@@ -22,6 +22,7 @@ export default function FieldPage() {
   const [placeName, setPlaceName] = useState<string | null>(null)
   const [gps, setGps] = useState<GpsState>('idle')
   const [tilesLoading, setTilesLoading] = useState(true)
+  const [backupTiles, setBackupTiles] = useState(false)
 
   const place = (lat: number, lon: number, name: string | null, zoom = 13) => {
     setField({ lat, lon })
@@ -60,6 +61,7 @@ export default function FieldPage() {
             }}
             flyTarget={flyTarget}
             onTilesLoading={setTilesLoading}
+            onBackupTiles={() => setBackupTiles(true)}
             className="h-full w-full"
           />
         </Suspense>
@@ -90,6 +92,11 @@ export default function FieldPage() {
           </div>
         </div>
 
+        {backupTiles && !tilesLoading && (
+          <p role="status" className="glass pointer-events-none absolute bottom-3 left-1/2 z-[1000] -translate-x-1/2 rounded-pill border border-glass px-3 py-1.5 text-sm text-text">
+            {t('field.backupMap')}
+          </p>
+        )}
         {tilesLoading && (
           <p role="status" className="glass pointer-events-none absolute bottom-3 left-1/2 z-[1000] inline-flex -translate-x-1/2 items-center gap-2 rounded-pill border border-glass px-3 py-1.5 text-sm text-text">
             <LoaderCircle size={14} aria-hidden="true" className="animate-spin" />

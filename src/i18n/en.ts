@@ -132,6 +132,7 @@ export const en: Record<string, string> = {
   'field.gpsDenied': 'Location permission was blocked. Search your village or tap the map instead.',
   'field.gpsFailed': 'We could not get your location. Search your village or tap the map instead.',
   'field.regional': 'NASA POWER shows the climate of the wider area (about 50 km), not exact field measurements.',
+  'field.backupMap': 'Main map is slow, showing a backup map',
   'field.boundary': 'Drawing field borders: coming soon',
   'field.continue': 'Continue',
   'search.placeholder': 'Search your village or town',

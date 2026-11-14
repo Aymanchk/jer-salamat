@@ -177,11 +177,11 @@
     border-color: var(--color-border) !important;
   }
   /* While tiles load, show a colour close to the basemap instead of grey. */
-  [data-theme='dark'] .leaflet-container {
-    background: #262a2b;
-  }
+  /* Same colour as OpenStreetMap land, in both themes: loading tiles never look like a grey hole. */
+  .leaflet-container,
+  [data-theme='dark'] .leaflet-container,
   [data-theme='light'] .leaflet-container {
-    background: #ece7de;
+    background: #f2efe9;
   }
 
   /* ---- Glass, neon and glow ---- */
