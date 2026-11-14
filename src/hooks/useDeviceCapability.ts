@@ -19,7 +19,7 @@ export function useCanRender3D(): boolean {
     const nav = navigator as Navigator & { connection?: NetworkInformation; deviceMemory?: number }
 
     if (nav.connection?.saveData) return false
-    if (nav.connection?.effectiveType && nav.connection.effectiveType !== '4g') return false
+    if (nav.connection?.effectiveType && /2g/.test(nav.connection.effectiveType)) return false
     if (typeof nav.deviceMemory === 'number' && nav.deviceMemory < 4) return false
     if (typeof nav.hardwareConcurrency === 'number' && nav.hardwareConcurrency < 4) return false
 
