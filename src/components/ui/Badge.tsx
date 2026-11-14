@@ -1,4 +1,4 @@
-import { Calculator, ClipboardList, Construction, FlaskConical, Satellite, type LucideIcon } from 'lucide-react'
+import { BookOpen, Calculator, ClipboardList, Construction, FlaskConical, Satellite, type LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { DataProvenance } from '@/core'
 import { cx } from '@/lib'
@@ -22,6 +22,11 @@ const TYPES: Record<DataProvenance, { label: string; icon: LucideIcon; className
     label: 'Estimate',
     icon: Calculator,
     className: 'bg-accent-soft text-accent-text border-transparent',
+  },
+  guidance: {
+    label: 'General guidance',
+    icon: BookOpen,
+    className: 'bg-surface-muted text-text border-border-strong',
   },
   hypothetical: {
     label: 'Hypothetical scenario',

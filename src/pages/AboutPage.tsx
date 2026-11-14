@@ -20,14 +20,26 @@ export default function AboutPage() {
 
       <Section labelledBy="about-sources">
         <SectionHeading id="about-sources" title="Data sources" />
-        <ul className="grid gap-4 md:grid-cols-3">
+        <ul className="grid gap-4">
           {DATA_SOURCES.map((source) => (
             <Card as="li" key={source.name} className="flex flex-col gap-2">
               <h3 className="text-xl">{source.name}</h3>
               <p className="text-text-muted">{source.what}</p>
               <p>
-                <span className="font-bold">Planned use: </span>
+                <span className="font-bold">Used for: </span>
                 {source.use}
+              </p>
+              <ul className="list-disc space-y-1 pl-5 text-text">
+                {source.variables.map((v) => (
+                  <li key={v}>{v}</li>
+                ))}
+              </ul>
+              <p className="text-text-muted">
+                <span className="font-bold text-text">Period: </span>
+                {source.period}
+                <br />
+                <span className="font-bold text-text">Resolution: </span>
+                {source.resolution}
               </p>
               <a
                 href={source.url}

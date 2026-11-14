@@ -68,6 +68,7 @@ export default {
     },
     fontFamily: {
       sans: 'var(--font-family-sans)',
+      display: 'var(--font-family-display)',
     },
     fontSize: {
       sm: ['var(--fs-sm)', { lineHeight: 'var(--lh-snug)' }],
@@ -78,6 +79,7 @@ export default {
       '3xl': ['var(--fs-3xl)', { lineHeight: 'var(--lh-tight)' }],
       '4xl': ['var(--fs-4xl)', { lineHeight: 'var(--lh-tight)' }],
       '5xl': ['var(--fs-5xl)', { lineHeight: 'var(--lh-tight)' }],
+      '6xl': ['var(--fs-6xl)', { lineHeight: '1.02' }],
     },
     borderRadius: {
       none: '0',

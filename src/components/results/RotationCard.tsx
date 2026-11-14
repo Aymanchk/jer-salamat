@@ -116,8 +116,8 @@ export function RotationCard({ plan, best = false, assumed = false, className }:
               Best fit for you
             </span>
           )}
-          {isCurrent ? <Badge type="answers" /> : <Badge type="estimate" />}
-          {plan.preliminary && !isCurrent && <Badge type="placeholder">Preliminary values</Badge>}
+          {isCurrent ? <Badge type="answers" /> : <Badge type="guidance" />}
+          {plan.preliminary && !isCurrent && <Badge type="placeholder">Preliminary</Badge>}
         </div>
 
         <section aria-label="Crop sequence">

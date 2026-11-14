@@ -73,7 +73,7 @@ export interface Recommendation {
 const LEVEL_VALUE: Record<Level, number> = { low: 0, medium: 0.5, high: 1 }
 const SOIL_VALUE: Record<SoilLevel, number> = { depletes: 0, neutral: 0.5, builds: 1 }
 const REPEAT_PENALTY = 0.15
-const SAME_BAND = 0.12
+const SAME_BAND = 0.15
 
 const TITLES: Record<PlanId, string> = {
   'water-saving': 'Water saving',

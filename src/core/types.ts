@@ -134,5 +134,6 @@ export type DataProvenance =
   | 'historical' // measured or modelled by NASA POWER
   | 'answers' // typed in by the farmer
   | 'estimate' // computed by this app
+  | 'guidance' // general crop-rotation knowledge, not from NASA data
   | 'hypothetical' // "what if" scenario, not a forecast
   | 'placeholder' // design placeholder, not real
