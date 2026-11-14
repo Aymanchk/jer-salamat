@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import type { ButtonHTMLAttributes, ReactNode, Ref } from 'react'
 import { Link } from 'react-router'
 import { cx } from '@/lib'
 
@@ -38,6 +38,7 @@ type ButtonProps = CommonProps &
   Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className' | 'children'> & {
     /** When set, renders a router link that looks like a button. */
     to?: string
+    ref?: Ref<HTMLButtonElement>
   }
 
 export function Button({
@@ -50,6 +51,7 @@ export function Button({
   children,
   to,
   type = 'button',
+  ref,
   ...rest
 }: ButtonProps) {
   const classes = cx(BASE, VARIANTS[variant], SIZES[size], block && 'w-full', className)
@@ -69,7 +71,7 @@ export function Button({
     )
   }
   return (
-    <button type={type} className={classes} {...rest}>
+    <button ref={ref} type={type} className={classes} {...rest}>
       {content}
     </button>
   )
