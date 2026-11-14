@@ -155,7 +155,15 @@ export function RotationCard({ plan, best = false, comparedToReference = false, 
                   <Term id="waterNeed">{t('plan.dim.water')}</Term>
                 </span>
                 <span className="block text-sm text-text-muted">
-                  {plan.water ? t('plan.water.range', { min: String(plan.water.min), max: String(plan.water.max) }) : t('plan.water.none')}
+                  {plan.water
+                    ? plan.water.missing.length > 0
+                      ? t('plan.water.rangePartial', {
+                          min: String(plan.water.min),
+                          max: String(plan.water.max),
+                          missing: { crops: plan.water.missing, sep: 'and' },
+                        })
+                      : t('plan.water.range', { min: String(plan.water.min), max: String(plan.water.max) })
+                    : t('plan.water.none')}
                 </span>
               </dt>
               <dd>

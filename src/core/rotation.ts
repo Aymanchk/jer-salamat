@@ -156,6 +156,9 @@ function compareSoil(a: number, b: number): Comparison {
 function explain(id: PlanId, sequence: CropId[], data: RotationData, ctx: Context, answers: FarmerAnswers) {
   const legumes = unique(sequence.filter((c) => data.crops[c].legume))
   const thirsty = unique(sequence.filter((c) => (data.crops[c].waterMm?.[1] ?? 0) >= 750))
+  const depleting = unique(sequence.filter((c) => data.crops[c].soilEffect.value === 'depletes'))
+  const repeated = unique(sequence.filter((c, i) => i > 0 && c === sequence[i - 1] && !data.crops[c].perennial))
+  const seq = crops(sequence, 'arrow')
   const why: Msg[] = []
   const benefits: Msg[] = []
   const limitations: Msg[] = []
@@ -163,29 +166,32 @@ function explain(id: PlanId, sequence: CropId[], data: RotationData, ctx: Contex
 
   if (id === 'water-saving') {
     if (answers.priority === 'water') why.push({ key: 'why.ws.priority' })
-    why.push({ key: 'why.ws.lowWater' })
+    why.push({ key: 'why.ws.lowWater', params: { seq } })
     if (ctx.waterShort) why.push({ key: ctx.rainOnly ? 'why.ws.rainOnly' : 'why.ws.waterShort' })
     if (ctx.warming) why.push({ key: 'why.ws.warming' })
     benefits.push({ key: 'benefit.ws.lessWater' }, { key: 'benefit.ws.dryYear' })
-    limitations.push({ key: 'limit.ws.fewLegumes' })
+    limitations.push({ key: 'limit.ws.fewLegumes', params: { seq } })
   } else if (id === 'soil-health') {
     if (answers.priority === 'soil') why.push({ key: 'why.sh.priority' })
-    why.push({ key: 'why.sh.legumes', params: { crops: crops(legumes) } }, { key: 'why.sh.roots' })
+    why.push({ key: 'why.sh.legumes', params: { seq, crops: crops(legumes) } }, { key: 'why.sh.roots' })
     benefits.push({ key: 'benefit.sh.fertilizer' }, { key: 'benefit.sh.pests' })
-    limitations.push({ key: 'limit.sh.water' }, { key: 'limit.sh.later' })
+    limitations.push({ key: 'limit.sh.water' }, { key: 'limit.sh.later', params: { seq } })
   } else if (id === 'economic') {
     if (answers.priority === 'income') why.push({ key: 'why.mc.priority' })
-    why.push({ key: 'why.mc.sale' }, { key: 'why.mc.break' })
+    why.push({ key: 'why.mc.sale', params: { seq } }, { key: 'why.mc.break', params: { seq } })
     limitations.push({ key: 'limit.mc.irrigation' })
     if (ctx.rainOnly) limitations.push({ key: 'limit.mc.rainOnly' })
   } else if (id === 'reference') {
-    why.push({ key: 'why.ref.what' }, { key: 'why.ref.notYours' })
+    why.push({ key: 'why.ref.what', params: { seq } }, { key: 'why.ref.notYours' })
     benefits.push({ key: 'benefit.ref.grasses' })
   } else {
-    why.push({ key: 'why.cur.what', params: { seq: crops(sequence, 'arrow') } })
-    if (hasRepeat(sequence, data)) limitations.push({ key: 'limit.cur.repeat' })
-    if (thirsty.length > 0 && ctx.waterShort) limitations.push({ key: 'limit.cur.thirsty', params: { crops: crops(thirsty) } })
+    why.push({ key: 'why.cur.what', params: { seq } })
+    if (legumes.length > 0) benefits.push({ key: 'benefit.cur.legumes', params: { crops: crops(legumes) } })
     benefits.push({ key: 'benefit.cur.known' })
+    if (repeated.length > 0) limitations.push({ key: 'limit.cur.repeat', params: { crops: crops(repeated), seq } })
+    if (depleting.length > 0) limitations.push({ key: 'limit.cur.depleting', params: { crops: crops(depleting), seq } })
+    if (legumes.length === 0) limitations.push({ key: 'limit.cur.noLegumes', params: { seq } })
+    if (thirsty.length > 0 && ctx.waterShort) limitations.push({ key: 'limit.cur.thirsty', params: { crops: crops(thirsty) } })
   }
 
   if (id !== 'current' && id !== 'reference' && thirsty.length > 0 && ctx.rainOnly) {
@@ -232,16 +238,34 @@ function core(answers: FarmerAnswers, climate: ClimateData | null, data: Rotatio
   const plans = data.strategies.map((s) => {
     const plan = build(s.id, s.sequence)
     plan.vsCurrent = { water: compareWater(plan.water, current.water), soil: compareSoil(plan.soil, current.soil) }
-    // Never show "worse on water" without saying why.
-    if (plan.vsCurrent.water === 'worse') {
+    const cmpParams = {
+      plan: { plan: current.id },
+      curSeq: crops(current.sequence, 'arrow'),
+      seq: crops(plan.sequence, 'arrow'),
+      min: String(plan.water?.min ?? 0),
+      max: String(plan.water?.max ?? 0),
+      curMin: String(current.water?.min ?? 0),
+      curMax: String(current.water?.max ?? 0),
+    }
+    if (plan.vsCurrent.water === 'better') {
+      plan.why.push({ key: 'why.cmp.waterBetter', params: cmpParams })
+    } else if (plan.vsCurrent.water === 'worse') {
+      // Never show "worse on water" without saying why.
       const key = hasRepeat(current.sequence, data)
         ? 'why.worseWater.repeat'
         : plan.vsCurrent.soil === 'better'
           ? 'why.worseWater.soil'
           : 'why.worseWater.other'
-      const msg: Msg = { key, params: { plan: { plan: current.id } } }
+      const msg: Msg = { key, params: cmpParams }
       if (plan.id === 'water-saving') plan.why.unshift(msg)
       else plan.limitations.unshift(msg)
+    }
+    if (plan.vsCurrent.soil === 'better') {
+      const planLegumes = unique(plan.sequence.filter((c) => data.crops[c].legume))
+      plan.why.push({ key: 'why.cmp.soilBetter', params: { ...cmpParams, legumes: crops(planLegumes) } })
+    } else if (plan.vsCurrent.soil === 'worse') {
+      const planDepleting = unique(plan.sequence.filter((c) => data.crops[c].soilEffect.value === 'depletes'))
+      plan.limitations.push({ key: 'limit.cmp.soilWorse', params: { ...cmpParams, crops: crops(planDepleting) } })
     }
     return plan
   })
