@@ -95,16 +95,16 @@ function Scene() {
   return (
     <>
       {/* This scene is always at night, in both themes. */}
-      <fog attach="fog" args={['#070b0a', 14, 42]} />
-      <hemisphereLight args={[new Color('#2ee6b8'), new Color('#070b0a'), 0.55]} />
-      <directionalLight position={[-10, 5, 2]} intensity={2.2} color="#c6ff3d" />
-      <directionalLight position={[10, 3, -6]} intensity={0.6} color="#3dd8ff" />
+      <fog attach="fog" args={['#0b100d', 14, 42]} />
+      <hemisphereLight args={[new Color('#8fc79a'), new Color('#0b100d'), 0.6]} />
+      <directionalLight position={[-10, 5, 2]} intensity={2.4} color="#fff1d6" />
+      <directionalLight position={[10, 3, -6]} intensity={0.7} color="#e8c46a" />
       <mesh geometry={terrain}>
-        <meshStandardMaterial color="#1e5145" flatShading roughness={0.9} metalness={0} />
+        <meshStandardMaterial color="#2c3d30" flatShading roughness={0.9} metalness={0} />
       </mesh>
       {/* Faint wire overlay gives the low-poly, "mapped from orbit" look. */}
       <mesh geometry={terrain} position={[0, 0.01, 0]}>
-        <meshBasicMaterial color="#2ee6b8" wireframe transparent opacity={0.09} />
+        <meshBasicMaterial color="#8fc79a" wireframe transparent opacity={0.09} />
       </mesh>
       <lineSegments geometry={grid}>
         <lineBasicMaterial color={tokens['--globe-highlight']} transparent opacity={0.22} />

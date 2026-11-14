@@ -1,76 +1,65 @@
 /*
- * Jer Salamat design tokens: "agri-tech at night".
+ * Jer Salamat design tokens: "fields and farms".
+ * Warm paper, dark soil-green ink, a leaf-green accent and wheat gold. Dark panels frame the globe
+ * and charts. No glow, no gradients: the data and the Earth are the colour.
  * Single source of truth for colour, type, spacing, radius, shadow and motion.
- * Components must use these (through Tailwind classes), never raw values.
- *
- * Colour follows the 60-30-10 rule:
- *   60% background — deep night green-black (dark) / cool off-white (light)
- *   30% surfaces   — deep green-teal cards, header and secondary areas
- *   10% accent     — neon lime: primary buttons, the selected pin, key numbers
- * Data colours are a separate family used only inside charts.
- * Dark is the default. Light keeps the same hues with no glow, for use in the sun.
  */
 
+/* Light theme values; the dark block below applies by default (html data-theme="dark"). */
 :root,
-[data-theme='dark'] {
-  /* ---- 60% background ---- */
-  --color-bg: #070b0a;
-  --color-bg-2: #0c1412;
-  --color-surface: #0f2a23;
-  --color-surface-muted: #15392f;
-  --color-border: #1e5145;
-  --color-border-strong: #4f8a78; /* 4:1 on bg, for control outlines */
-  --color-text: #e9f5ef; /* 16:1 on bg */
-  --color-text-muted: #a3c2b6; /* 9:1 on bg, 7.4:1 on surface */
+[data-theme='light'] {
+  --color-bg: #fbfaf6;
+  --color-bg-2: #f3f1ea;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f2f0e8;
+  --color-border: #e4e1d6;
+  --color-border-strong: #868b7c; /* 3.3:1 on white, for control outlines */
+  --color-text: #14201a; /* 18:1 */
+  --color-text-muted: #55605a; /* 7:1 */
 
-  /* ---- 30% secondary: green-teal ---- */
-  --color-primary: #15392f;
-  --color-primary-strong: #1e5145;
-  --color-primary-soft: #15392f;
-  --color-on-primary: #e9f5ef;
-  --color-on-primary-muted: #b6d1c6;
-  --color-heading: #f2fbf6;
-  --color-selected: #c6ff3d;
+  --color-primary: #1f3a2a;
+  --color-primary-strong: #2a4a36;
+  --color-primary-soft: #e8efe6;
+  --color-on-primary: #ffffff;
+  --color-on-primary-muted: #c3d3c7;
+  --color-heading: #14201a;
+  --color-selected: #2e7d3a;
 
-  /* ---- 10% accent: neon lime ---- */
-  --color-accent: #c6ff3d;
-  --color-accent-hover: #d6ff70;
-  --color-on-accent: #070b0a; /* 17:1 on accent */
-  --color-accent-text: #c6ff3d; /* 16:1 on bg */
-  --color-accent-soft: #1f3314;
+  --color-accent: #2e7d3a; /* white text 5:1 */
+  --color-accent-hover: #256a30;
+  --color-on-accent: #ffffff;
+  --color-accent-text: #2a7136; /* 6:1 on white */
+  --color-accent-soft: #e7f2e4;
 
-  /* ---- status ---- */
-  --color-danger: #ff7a70;
-  --color-danger-soft: #3b1a17;
-  --color-better: #c6ff3d;
-  --color-worse: #ff9b6a;
-  --color-focus: #c6ff3d;
+  --color-danger: #d92d20;
+  --color-danger-soft: #fef3f2;
+  --color-better: #2e7d3a;
+  --color-worse: #b5540c;
+  --color-focus: #2e7d3a;
 
-  /* ---- glass and glow ---- */
-  --glass-bg: rgb(12 20 18 / 0.72);
-  --glass-border: rgb(198 255 61 / 0.12);
-  --glow-accent: 0 0 0 1px rgb(198 255 61 / 0.55), 0 0 18px rgb(198 255 61 / 0.4), 0 0 44px rgb(198 255 61 / 0.16);
-  --glow-soft: 0 0 24px rgb(198 255 61 / 0.16);
-  --gradient-neon: linear-gradient(120deg, #c6ff3d, #2ee6b8 50%, #3dd8ff);
-  --hero-aurora: radial-gradient(70% 45% at 80% 0%, rgb(46 230 184 / 0.07), transparent 70%);
+  --glass-bg: rgb(251 250 246 / 0.85);
+  --glass-border: rgb(20 32 26 / 0.08);
+  --glow-accent: none;
+  --glow-soft: none;
+  --gradient-neon: linear-gradient(120deg, #2e7d3a, #c9a24a 50%, #2e7d3a);
+  --hero-aurora: none;
 
-  /* ---- data colours (charts only) ---- */
-  --data-temp: #ff7a45;
-  --data-temp-soft: rgb(255 122 69 / 0.16);
-  --data-precip: #3dd8ff;
-  --data-precip-soft: rgb(61 216 255 / 0.16);
-  --data-soil: #2ee6b8;
-  --data-soil-soft: rgb(46 230 184 / 0.16);
-  --data-trend: #e9f5ef;
-  --data-grid: #173a31;
-  --data-scenario: #ffd166;
+  --data-temp: #e8590c;
+  --data-temp-soft: #fdebdf;
+  --data-precip: #2b55ff;
+  --data-precip-soft: #e4eaff;
+  --data-soil: #0e8f6e;
+  --data-soil-soft: #dcf2eb;
+  --data-trend: #14201a;
+  --data-grid: #ebe8de;
+  --data-scenario: #b45309;
 
-  /* ---- 3D globe ---- */
-  --globe-ocean: #08201a;
-  --globe-line: #2ee6b8;
-  --globe-grid: #1e5145;
-  --globe-highlight: #c6ff3d;
-  --globe-atmosphere: rgb(46 230 184 / 0.35);
+  --globe-ocean: #0a140f;
+  --globe-line: #8fc79a;
+  --globe-grid: #23402c;
+  --globe-highlight: #e8c46a;
+  --globe-atmosphere: rgb(110 170 120 / 0.3);
+  --panel-bg: #0a0a0b;
 
   /* ---- typography ---- */
   --font-family-sans: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -111,8 +100,8 @@
   --radius-pill: 999px;
 
   /* ---- shadow ---- */
-  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 8px 24px rgb(0 0 0 / 0.35);
-  --shadow-raised: 0 12px 40px rgb(0 0 0 / 0.55);
+  --shadow-card: 0 1px 2px rgb(17 17 19 / 0.06), 0 2px 8px rgb(17 17 19 / 0.06);
+  --shadow-raised: 0 8px 28px rgb(17 17 19 / 0.14);
 
   /* ---- motion ---- */
   --motion-fast: 150ms;
@@ -124,7 +113,7 @@
   --z-header: 1100;
   --z-popover: 1200;
 
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 @media (min-width: 640px) {
@@ -134,62 +123,57 @@
   }
 }
 
-/* Light theme for bright sun: same hues, no glow, accent darkened for AA. */
-[data-theme='light'] {
-  --color-bg: #f3f7f4;
-  --color-bg-2: #e9f1ec;
-  --color-surface: #ffffff;
-  --color-surface-muted: #e6efe9;
-  --color-border: #cddcd3;
-  --color-border-strong: #6b8378; /* 3.9:1 on bg */
-  --color-text: #0b1a14; /* 17:1 */
-  --color-text-muted: #45594f; /* 7:1 */
+/* Dark: neutral black panels (the globe, charts) and the optional night theme. */
+[data-theme='dark'] {
+  --color-bg: #0b100d;
+  --color-bg-2: #101712;
+  --color-surface: #131c16;
+  --color-surface-muted: #19251d;
+  --color-border: #26362b;
+  --color-border-strong: #6b7d70;
+  --color-text: #eef3ee;
+  --color-text-muted: #a6b5aa; /* 8:1 on bg */
 
-  --color-primary: #15392f;
-  --color-primary-strong: #1e5145;
-  --color-primary-soft: #dcede4;
-  --color-on-primary: #f3f7f4;
-  --color-on-primary-muted: #c2d8cd;
-  --color-heading: #0f2a23;
-  --color-selected: #3f6212;
+  --color-primary: #1a2b20;
+  --color-primary-strong: #24382b;
+  --color-primary-soft: #1a2b20;
+  --color-on-primary: #eef3ee;
+  --color-on-primary-muted: #b4c4b8;
+  --color-heading: #f6faf5;
+  --color-selected: #8fd19b;
 
-  --color-accent: #4d7c0f; /* white text 5.1:1 */
-  --color-accent-hover: #3f6212;
+  --color-accent: #2e8540; /* white text 4.7:1 */
+  --color-accent-hover: #369a4b;
   --color-on-accent: #ffffff;
-  --color-accent-text: #3f6212; /* 7.4:1 on white */
-  --color-accent-soft: #ecf7d9;
+  --color-accent-text: #8fd19b;
+  --color-accent-soft: #1c3323;
 
-  --color-danger: #b42318;
-  --color-danger-soft: #fdecea;
-  --color-better: #3f6212;
-  --color-worse: #b54708;
-  --color-focus: #12332b;
+  --color-danger: #ff7a70;
+  --color-danger-soft: #3b1a17;
+  --color-better: #8fd19b;
+  --color-worse: #f0a35e;
+  --color-focus: #e8c46a;
 
-  --glass-bg: rgb(255 255 255 / 0.82);
-  --glass-border: rgb(18 51 43 / 0.12);
-  --glow-accent: 0 1px 2px rgb(11 26 20 / 0.2);
+  --glass-bg: rgb(11 16 13 / 0.75);
+  --glass-border: rgb(232 196 106 / 0.12);
+
+  --data-temp: #ff8a4c;
+  --data-temp-soft: rgb(255 138 76 / 0.16);
+  --data-precip: #7d97ff;
+  --data-precip-soft: rgb(125 151 255 / 0.16);
+  --data-soil: #34d3a4;
+  --data-soil-soft: rgb(52 211 164 / 0.16);
+  --data-trend: #eef3ee;
+  --data-grid: #1d2a21;
+  --data-scenario: #fbbf24;
+
+  --gradient-neon: linear-gradient(120deg, #2e8540, #e8c46a 50%, #2e8540);
+  --glow-accent: none;
   --glow-soft: none;
-  --gradient-neon: linear-gradient(120deg, #4d7c0f, #0f766e 50%, #0e7490);
   --hero-aurora: none;
 
-  --data-temp: #c2410c;
-  --data-temp-soft: #fbe3d6;
-  --data-precip: #0e7490;
-  --data-precip-soft: #d6eff5;
-  --data-soil: #0f766e;
-  --data-soil-soft: #d5ecea;
-  --data-trend: #0b1a14;
-  --data-grid: #e1ebe5;
-  --data-scenario: #9a3412;
+  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 8px 24px rgb(0 0 0 / 0.35);
+  --shadow-raised: 0 12px 40px rgb(0 0 0 / 0.55);
 
-  --globe-ocean: #0f2a23;
-  --globe-line: #8fe8cf;
-  --globe-grid: #1e5145;
-  --globe-highlight: #c6ff3d;
-  --globe-atmosphere: rgb(15 118 110 / 0.25);
-
-  --shadow-card: 0 1px 2px rgb(11 26 20 / 0.06), 0 2px 8px rgb(11 26 20 / 0.06);
-  --shadow-raised: 0 8px 28px rgb(11 26 20 / 0.14);
-
-  color-scheme: light;
+  color-scheme: dark;
 }

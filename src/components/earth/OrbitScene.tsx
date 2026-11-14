@@ -303,7 +303,7 @@ function Earth({ progress, dense, wide }: EarthProps) {
 
   const dots = useMemo(() => buildDots(dense), [dense])
   const colors = useMemo(
-    () => ({ day: tokens['--globe-line'], night: '#1e5145', accent: tokens['--globe-highlight'] }),
+    () => ({ day: tokens['--globe-line'], night: '#23402c', accent: tokens['--globe-highlight'] }),
     [tokens],
   )
   const globeGeo = useMemo(() => geometryOf(dots.globe), [dots])
@@ -319,7 +319,7 @@ function Earth({ progress, dense, wide }: EarthProps) {
         blending: AdditiveBlending,
         transparent: true,
         depthWrite: false,
-        uniforms: { uColor: { value: new Color('#2ee6b8') }, uFade: { value: 0 }, uPower: { value: 2.6 } },
+        uniforms: { uColor: { value: new Color('#5f9e6b') }, uFade: { value: 0 }, uPower: { value: 2.6 } },
       }),
     [],
   )
@@ -331,7 +331,7 @@ function Earth({ progress, dense, wide }: EarthProps) {
         blending: AdditiveBlending,
         transparent: true,
         depthWrite: false,
-        uniforms: { uColor: { value: new Color('#c6ff3d') }, uFade: { value: 0 }, uPower: { value: 4.5 } },
+        uniforms: { uColor: { value: new Color('#b8dca8') }, uFade: { value: 0 }, uPower: { value: 4.5 } },
       }),
     [],
   )
@@ -484,7 +484,7 @@ function Stars({ count }: { count: number }) {
   }, [count])
   return (
     <points geometry={geo}>
-      <pointsMaterial color="#a3c2b6" size={0.035} sizeAttenuation transparent opacity={0.55} depthWrite={false} />
+      <pointsMaterial color="#a6b5aa" size={0.035} sizeAttenuation transparent opacity={0.55} depthWrite={false} />
     </points>
   )
 }
