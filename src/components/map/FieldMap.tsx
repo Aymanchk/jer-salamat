@@ -3,10 +3,23 @@ import 'leaflet/dist/leaflet.css'
 import { useEffect, useMemo } from 'react'
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents, ZoomControl } from 'react-leaflet'
 import type { FieldLocation } from '@/core'
+import { useTheme } from '@/state/theme'
 
 /** Sokuluk district, Chuy region. */
 export const SOKULUK_CENTER: FieldLocation = { lat: 42.86, lon: 74.3 }
 const DEFAULT_ZOOM = 11
+/** Highest zoom the map flies to; closer than this the farmland tiles get blurry. */
+export const MAX_FLY_ZOOM = 13
+/** Kyrgyzstan, with a little padding. The map cannot be dragged far outside it. */
+const KG_BOUNDS = L.latLngBounds([38.9, 68.9], [43.6, 80.6])
+
+/** CARTO basemaps (OpenStreetMap data): fast CDN, a light and a dark style to match the theme. */
+const TILES = {
+  light: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+}
+const ATTRIBUTION =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
 
 // A pin drawn with CSS token colours instead of Leaflet's default image.
 const PIN_HTML = `
@@ -42,7 +55,7 @@ function FlyTo({ target }: { target: FlyTarget | null }) {
   useEffect(() => {
     if (!target) return
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    map.flyTo([target.lat, target.lon], target.zoom ?? 13, { animate: !reduced, duration: 1 })
+    map.flyTo([target.lat, target.lon], Math.min(target.zoom ?? MAX_FLY_ZOOM, MAX_FLY_ZOOM), { animate: !reduced, duration: 1 })
   }, [map, target])
   return null
 }
@@ -64,22 +77,30 @@ export default function FieldMap({ value, onChange, flyTarget = null, className 
     () => L.divIcon({ className: 'field-pin', html: PIN_HTML, iconSize: [40, 48], iconAnchor: [20, 47] }),
     [],
   )
+  const { theme } = useTheme()
 
   return (
     <MapContainer
       center={value ? [value.lat, value.lon] : [SOKULUK_CENTER.lat, SOKULUK_CENTER.lon]}
       zoom={DEFAULT_ZOOM}
       minZoom={7}
-      maxZoom={17}
+      maxZoom={16}
+      maxBounds={KG_BOUNDS}
+      maxBoundsViscosity={0.8}
       scrollWheelZoom
       zoomControl={false}
       className={className}
       attributionControl
     >
       <TileLayer
-        className="map-tiles"
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        key={theme}
+        url={TILES[theme]}
+        attribution={ATTRIBUTION}
+        subdomains="abcd"
+        detectRetina
+        keepBuffer={4}
+        updateWhenZooming={false}
+        maxZoom={16}
       />
       <ClickToPlace onPick={onChange} />
       <KeepInView value={value} />

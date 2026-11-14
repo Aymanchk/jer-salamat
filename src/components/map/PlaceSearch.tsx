@@ -34,7 +34,7 @@ async function searchPlaces(query: string, signal: AbortSignal): Promise<Place[]
   const params = new URLSearchParams({
     format: 'json',
     countrycodes: 'kg',
-    limit: '5',
+    limit: '8',
     viewbox: CHUY_VIEWBOX,
     'accept-language': 'en',
     q: query,
@@ -42,7 +42,9 @@ async function searchPlaces(query: string, signal: AbortSignal): Promise<Place[]
   const res = await fetch(`${ENDPOINT}?${params}`, { signal })
   if (!res.ok) throw new Error(`Search failed (${res.status})`)
   const rows = (await res.json()) as NominatimResult[]
-  return rows.slice(0, 5).map((r) => {
+  const seen = new Set<string>()
+  return rows
+    .map((r) => {
     const parts = r.display_name.split(',').map((p) => p.trim())
     return {
       name: r.name || parts[0],
@@ -51,6 +53,14 @@ async function searchPlaces(query: string, signal: AbortSignal): Promise<Place[]
       lon: Number(r.lon),
     }
   })
+    // Nominatim can return the same place twice (node and area): keep one.
+    .filter((p) => {
+      const key = `${p.name.toLowerCase()}|${p.lat.toFixed(2)}|${p.lon.toFixed(2)}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+    .slice(0, 5)
 }
 
 type Status = 'idle' | 'loading' | 'done' | 'error'

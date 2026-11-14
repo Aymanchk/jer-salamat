@@ -35,7 +35,7 @@ export default function FieldPage() {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setGps('idle')
-        place(pos.coords.latitude, pos.coords.longitude, 'Your location', 15)
+        place(pos.coords.latitude, pos.coords.longitude, 'Your location')
       },
       (err) => setGps(err.code === err.PERMISSION_DENIED ? 'denied' : 'unavailable'),
       { enableHighAccuracy: true, timeout: 10000 },
@@ -43,7 +43,7 @@ export default function FieldPage() {
   }
 
   return (
-    <div className="flex h-[calc(100dvh-var(--size-header)-var(--size-stepper))] flex-col lg:flex-row-reverse">
+    <div className="flex h-[calc(100dvh-var(--size-header)-var(--size-stepper)-2px)] flex-col lg:flex-row-reverse">
       <h1 className="sr-only">Pick your field</h1>
 
       {/* Map: fills the screen on mobile. */}
@@ -63,14 +63,14 @@ export default function FieldPage() {
         {/* Search and demo chips float over the map. */}
         <div className="absolute inset-x-0 top-0 z-[1000] flex flex-col gap-2 p-3 sm:p-4">
           <PlaceSearch onPick={(p) => place(p.lat, p.lon, p.name)} className="mx-auto w-full max-w-lg" />
-          <div className="no-scrollbar mx-auto flex w-full max-w-lg gap-2 overflow-x-auto" role="group" aria-label="Demo fields">
+          <div className="no-scrollbar mx-auto flex w-full max-w-lg gap-2 overflow-x-auto pr-6 [mask-image:linear-gradient(90deg,#000_82%,transparent)] sm:pr-0 sm:[mask-image:none]" role="group" aria-label="Demo fields">
             {DEMO_POINTS.map((p) => {
               const selected = field?.lat === p.lat && field?.lon === p.lon
               return (
                 <button
                   key={p.id}
                   type="button"
-                  onClick={() => place(p.lat, p.lon, `${p.name} (demo)`, 14)}
+                  onClick={() => place(p.lat, p.lon, `${p.name} (demo)`)}
                   aria-pressed={selected}
                   className={cx(
                     'glass inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-pill border px-3 text-sm font-bold transition-colors duration-fast',
@@ -91,7 +91,7 @@ export default function FieldPage() {
 
       {/* Panel: bottom sheet on mobile, side column on desktop. */}
       <div className="shrink-0 border-t border-border bg-surface shadow-raised lg:flex lg:w-[26rem] lg:flex-col lg:border-r lg:border-t-0 lg:shadow-none">
-        <div className="mx-auto flex w-full max-w-xl flex-col gap-3 p-4 lg:gap-5 lg:p-8">
+        <div className="mx-auto flex w-full max-w-xl flex-col gap-2.5 px-4 pb-4 pt-3 lg:gap-5 lg:p-8">
           <div className="hidden lg:block">
             <p className="text-2xl font-bold text-heading" aria-hidden="true">
               Where is your field?
@@ -137,8 +137,15 @@ export default function FieldPage() {
           <p id="gps-note" className="text-sm text-text-muted" role={gps === 'denied' || gps === 'unavailable' ? 'alert' : undefined}>
             {gps === 'denied' && 'Location permission was blocked. Search your village or tap the map instead.'}
             {gps === 'unavailable' && 'We could not get your location. Search your village or tap the map instead.'}
-            {(gps === 'idle' || gps === 'asking') &&
-              '"My location" asks your browser for permission. We use it only to place the pin and load climate data for that spot. We do not save it.'}
+            {(gps === 'idle' || gps === 'asking') && (
+              <>
+                <span className="lg:hidden">Location is used only to place the pin. Not saved.</span>
+                <span className="max-lg:hidden">
+                  "My location" asks your browser for permission. We use it only to place the pin and load climate data for that spot. We
+                  do not save it.
+                </span>
+              </>
+            )}
           </p>
 
           <p className="hidden items-start gap-2 rounded-control bg-surface-muted p-3 text-sm text-text sm:flex">

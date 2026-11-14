@@ -128,7 +128,7 @@ export function ChartCard({ variable, status, points, trend, summary, scenario, 
   const Icon = meta.icon
   const chartRef = useRef<HTMLDivElement>(null)
   // Charts draw in when they scroll into view.
-  const inView = useInView(chartRef, { once: true, margin: '0px 0px -60px 0px' })
+  const inView = useInView(chartRef, { once: true, margin: '0px 0px 160px 0px' })
   const years = points.map((p) => p.year)
   const values = points.map((p) => p.value)
   const scenarioLabel = scenario?.label
