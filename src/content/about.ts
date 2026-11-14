@@ -20,4 +20,4 @@ export const REFERENCE_SOURCES = SOURCE_LIST.filter((s) => s.kind !== 'nasa')
 export const LIMITATIONS = ['limit.1', 'limit.2', 'limit.3', 'limit.4', 'limit.5', 'limit.6']
 
 /** Team names go here. Names only, no photos. */
-export const TEAM: string[] = []
+export const TEAM: string[] = ['Aiman Erkinbekov', 'Nurlan Toigonbekov', 'Kuttubai Iskakov', 'Viacheslav Yakovlev']
