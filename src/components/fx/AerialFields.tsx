@@ -111,11 +111,12 @@ export function AerialFields({ className }: { className?: string }) {
 
   return (
     <figure ref={ref} className={cx('m-0', className)}>
-      <div className="relative h-[20rem] overflow-hidden rounded-card border border-border bg-[#3d3427] sm:h-[26rem]">
+      <div className="relative h-[20rem] overflow-hidden rounded-card border border-border bg-[#3d3427] [contain:paint] sm:h-[26rem]">
         <svg
           viewBox={`0 0 ${W} ${H}`}
           preserveAspectRatio="xMidYMid slice"
-          className="absolute inset-0 h-full w-full"
+          overflow="hidden"
+          className="absolute inset-0 h-full w-full overflow-hidden"
           role="img"
           aria-label={t('aerial.aria')}
           onPointerLeave={() => setHover(null)}

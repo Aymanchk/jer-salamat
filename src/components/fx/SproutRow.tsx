@@ -21,7 +21,7 @@ export function SproutRow({ count = 28, className }: SproutRowProps) {
   const H = 140
   const step = W / count
   return (
-    <svg aria-hidden="true" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMax slice" className={cx('block w-full', className)}>
+    <svg aria-hidden="true" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMax slice" overflow="hidden" className={cx('block w-full overflow-hidden [contain:paint]', className)}>
       {/* The furrow. */}
       <m.path
         d={`M0 ${H - 6} Q ${W / 2} ${H - 14} ${W} ${H - 6}`}
