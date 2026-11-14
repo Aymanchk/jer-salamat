@@ -321,7 +321,7 @@ export default function ResultsPage() {
               onClick={() => scrollToCard(i)}
               aria-label={`Show ${PLANS[plan.id].title}`}
               aria-current={activeCard === i}
-              className="inline-flex h-11 w-9 items-center justify-center"
+              className="inline-flex h-11 w-11 items-center justify-center"
             >
               <span className={cx('h-2.5 rounded-pill transition-all duration-base ease-token', activeCard === i ? 'w-7 bg-selected' : 'w-2.5 bg-border-strong')} />
             </button>

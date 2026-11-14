@@ -10,7 +10,7 @@ export function Footer() {
         </p>
         <p>
           Data: NASA POWER ·{' '}
-          <Link to="/about" className="font-bold text-heading underline underline-offset-4">
+          <Link to="/about" className="inline-flex min-h-11 items-center font-bold text-heading underline underline-offset-4">
             Sources and limits
           </Link>
         </p>

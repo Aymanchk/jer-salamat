@@ -163,6 +163,14 @@
   .leaflet-control-attribution a {
     color: var(--color-text) !important;
   }
+  /* 44 px zoom buttons for fingers. */
+  .leaflet-touch .leaflet-bar a,
+  .leaflet-bar a {
+    width: 44px !important;
+    height: 44px !important;
+    line-height: 44px !important;
+    font-size: 22px !important;
+  }
   .leaflet-bar a {
     background: var(--color-surface) !important;
     color: var(--color-text) !important;
