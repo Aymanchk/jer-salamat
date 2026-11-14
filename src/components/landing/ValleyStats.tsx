@@ -87,8 +87,8 @@ export function ValleyStats() {
   const stats = data ? statsOf(data) : null
 
   return (
-    <section ref={ref} aria-labelledby="valley-title" data-theme="dark" className="relative overflow-hidden bg-bg pb-section pt-section text-text">
-      <div aria-hidden="true" className="absolute inset-x-0 top-0 h-[34rem] sm:h-[38rem]">
+    <section ref={ref} aria-labelledby="valley-title" data-theme="dark" className="relative overflow-hidden bg-bg pb-8 pt-section text-text">
+      <div aria-hidden="true" className="absolute inset-x-0 top-0 h-[34rem] [mask-image:linear-gradient(180deg,#000_55%,transparent_92%)] sm:h-[38rem]">
         {showTerrain && (
           <Suspense fallback={null}>
             <ValleyTerrain />

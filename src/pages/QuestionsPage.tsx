@@ -1,9 +1,10 @@
-import { ArrowLeft, ArrowRight, Check, Lightbulb } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Lightbulb, MapPinOff } from 'lucide-react'
 import { m } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Container } from '@/components/layout/Page'
 import { Button } from '@/components/ui/Button'
+import { EmptyState } from '@/components/ui/States'
 import { StepProgress } from '@/components/ui/StepProgress'
 import { QUESTIONS, UNKNOWN_OPTION, type QuestionOption } from '@/content/questions'
 import type { FarmerAnswers } from '@/core'
@@ -58,6 +59,29 @@ function OptionButton({ option, name, selected, onSelect, quiet }: OptionButtonP
 }
 
 export default function QuestionsPage() {
+  const { field } = useSession()
+  if (!field) {
+    return (
+      <Container className="py-10">
+        <EmptyState
+          headingLevel="h1"
+          icon={MapPinOff}
+          title="Pick your field first"
+          action={
+            <Button to="/field" iconRight={<ArrowRight size={20} />}>
+              Pick my field
+            </Button>
+          }
+        >
+          The questions are about one field. Place a pin on the map, then come back.
+        </EmptyState>
+      </Container>
+    )
+  }
+  return <Wizard />
+}
+
+function Wizard() {
   const { answers, setAnswer } = useSession()
   const navigate = useNavigate()
   const [index, setIndex] = useState(0)

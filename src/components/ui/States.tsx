@@ -12,9 +12,12 @@ interface StateShellProps {
   role?: 'alert' | 'status'
   compact?: boolean
   className?: string
+  /** Use "h1" when the state is the whole page (for example 404). */
+  headingLevel?: 'h1' | 'h3'
 }
 
-function StateShell({ icon: Icon, title, children, action, tone, role, compact, className }: StateShellProps) {
+function StateShell({ icon: Icon, title, children, action, tone, role, compact, className, headingLevel = 'h3' }: StateShellProps) {
+  const Heading = headingLevel
   return (
     <div
       role={role}
@@ -34,7 +37,7 @@ function StateShell({ icon: Icon, title, children, action, tone, role, compact, 
       >
         <Icon size={24} />
       </span>
-      <h3 className={cx('text-lg', tone === 'danger' && 'text-text')}>{title}</h3>
+      <Heading className={cx('text-lg', tone === 'danger' && 'text-text')}>{title}</Heading>
       {children && <p className="max-w-md text-text-muted">{children}</p>}
       {action && <div className="mt-2">{action}</div>}
     </div>
@@ -42,6 +45,7 @@ function StateShell({ icon: Icon, title, children, action, tone, role, compact, 
 }
 
 interface EmptyStateProps {
+  headingLevel?: 'h1' | 'h3'
   title: string
   children?: ReactNode
   action?: ReactNode

@@ -121,13 +121,13 @@ export function RotationCard({ plan, best = false, assumed = false, className }:
         </div>
 
         <section aria-label="Crop sequence">
-          <p className="mb-3 text-sm font-bold text-text-muted">{isCurrent ? 'What you grow now' : 'Crop order, season by season'}</p>
+          <p className="mb-3 text-sm font-bold text-text-muted">{isCurrent ? 'What you grow now' : 'Crop order, year by year'}</p>
           <ol className="relative grid grid-cols-4 gap-1">
             <span aria-hidden="true" className="absolute inset-x-[12.5%] top-[2.6rem] h-0.5 bg-border" />
             {plan.sequence.map((crop, i) => (
-              <li key={i} className="relative flex flex-col items-center gap-1.5" aria-label={`Season ${i + 1}: ${cropLabel(crop)}`}>
-                <span className="text-sm text-text-muted" aria-hidden="true">
-                  Season {i + 1}
+              <li key={i} className="relative flex flex-col items-center gap-1.5" aria-label={`Year ${i + 1}: ${cropLabel(crop)}`}>
+                <span className="whitespace-nowrap text-sm text-text-muted" aria-hidden="true">
+                  Year {i + 1}
                 </span>
                 <CropIcon crop={crop} />
               </li>

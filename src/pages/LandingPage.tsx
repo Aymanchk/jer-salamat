@@ -245,11 +245,12 @@ function HowItWorks() {
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
   const [activeStep, setActiveStep] = useState(0)
   const pinned = useMediaQuery('(min-width: 1024px)')
-  useMotionValueEvent(scrollYProgress, 'change', (p) => setActiveStep(Math.min(3, Math.floor(p * 4.2))))
+  // Each step gets an equal share of the pinned scroll, so 1 → 2 → 3 → 4 all light up in turn.
+  useMotionValueEvent(scrollYProgress, 'change', (p) => setActiveStep(Math.min(3, Math.max(0, Math.floor(p * 4)))))
 
   return (
-    <section id="how" ref={ref} aria-labelledby="how-title" className={cx('relative scroll-mt-header', pinned ? 'h-[240vh]' : 'pt-section')}>
-      <div className={cx(pinned && 'sticky top-header flex h-[calc(100dvh-var(--size-header))] items-center')}>
+    <section id="how" ref={ref} aria-labelledby="how-title" className={cx('relative scroll-mt-header', pinned ? 'h-[360vh]' : 'pt-section')}>
+      <div className={cx(pinned && 'sticky top-header flex h-[calc(100dvh-var(--size-header))] items-start pt-16')}>
         <Container>
           <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
             <div>
@@ -274,7 +275,7 @@ function HowItWorks() {
                     key={step.title}
                     className={cx(
                       'flex gap-4 rounded-card border p-5 transition-[opacity,border-color,background-color,transform] duration-slow ease-token sm:p-6',
-                      on ? 'border-border bg-surface opacity-100' : 'border-transparent bg-transparent opacity-35',
+                      on ? 'border-border bg-surface' : 'border-border/40 bg-transparent text-text-muted',
                       pinned && i === activeStep && 'border-border-strong shadow-glow-soft lg:translate-x-2',
                     )}
                   >
@@ -362,12 +363,13 @@ function Trust() {
 export default function LandingPage() {
   const can3D = useCanRender3D()
   const toHow = () => document.getElementById('how')?.scrollIntoView({ behavior: 'smooth' })
+  // The landing is a night scene in both themes (the theme switch applies to the tool pages).
   return (
-    <>
+    <div data-theme="dark" className="bg-bg pb-section text-text">
       {can3D ? <OrbitStory onHow={toHow} /> : <StaticHero onHow={toHow} />}
       <ValleyStats />
       <HowItWorks />
       <Trust />
-    </>
+    </div>
   )
 }

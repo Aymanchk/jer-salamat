@@ -1,15 +1,18 @@
-import { Bean, Carrot, CircleDashed, Clover, LeafyGreen, Sprout, Wheat, type LucideIcon } from 'lucide-react'
+import { Bean, Carrot, CircleDashed, Flower2, Salad, Wheat } from 'lucide-react'
+import type { ComponentType } from 'react'
+import { BarleyIcon, MaizeIcon } from './CustomCropIcons'
 import type { CropId } from '@/core'
 import { cx } from '@/lib'
 
-const CROPS: Record<CropId, { label: string; icon: LucideIcon }> = {
+/** Every crop has its own icon, always shown with its name. */
+const CROPS: Record<CropId, { label: string; icon: ComponentType<{ size?: number }> }> = {
   wheat: { label: 'Wheat', icon: Wheat },
-  barley: { label: 'Barley', icon: Wheat },
-  maize: { label: 'Maize', icon: Sprout },
+  barley: { label: 'Barley', icon: BarleyIcon },
+  maize: { label: 'Maize', icon: MaizeIcon },
   'sugar-beet': { label: 'Sugar beet', icon: Carrot },
-  alfalfa: { label: 'Alfalfa', icon: Clover },
+  alfalfa: { label: 'Alfalfa', icon: Flower2 },
   beans: { label: 'Beans', icon: Bean },
-  vegetables: { label: 'Vegetables', icon: LeafyGreen },
+  vegetables: { label: 'Vegetables', icon: Salad },
   fallow: { label: 'Rest (fallow)', icon: CircleDashed },
 }
 

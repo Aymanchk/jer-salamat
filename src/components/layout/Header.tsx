@@ -45,8 +45,10 @@ export function Header() {
           </ul>
         </nav>
 
+        {/* The landing is always a night scene, so the switch only shows where it changes something. */}
         <button
           type="button"
+          hidden={onLanding}
           onClick={toggle}
           aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
           className="inline-flex h-tap w-tap items-center justify-center rounded-pill text-text-muted hover:bg-primary-soft hover:text-text"
