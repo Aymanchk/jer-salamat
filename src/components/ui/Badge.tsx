@@ -1,6 +1,7 @@
 import { BookOpen, Calculator, ClipboardList, Construction, FlaskConical, Satellite, type LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { DataProvenance } from '@/core'
+import { useT } from '@/i18n'
 import { cx } from '@/lib'
 
 /**
@@ -28,6 +29,11 @@ const TYPES: Record<DataProvenance, { label: string; icon: LucideIcon; className
     icon: BookOpen,
     className: 'bg-surface-muted text-text border-border-strong',
   },
+  reference: {
+    label: 'Reference',
+    icon: BookOpen,
+    className: 'bg-surface text-text border-border-strong',
+  },
   hypothetical: {
     label: 'Hypothetical scenario',
     icon: FlaskConical,
@@ -48,16 +54,18 @@ interface BadgeProps {
 }
 
 export function Badge({ type, children, className }: BadgeProps) {
-  const { label, icon: Icon, className: typeClass } = TYPES[type]
+  const { t } = useT()
+  const { icon: Icon, className: typeClass } = TYPES[type]
+  const label = t(`badge.${type}`)
   return (
     <span
       className={cx(
-        'inline-flex items-center gap-1.5 rounded-pill border px-2.5 py-1 text-sm font-bold leading-none whitespace-nowrap',
+        'inline-flex max-w-full items-center gap-1.5 rounded-pill border px-2.5 py-1 text-sm font-bold leading-tight',
         typeClass,
         className,
       )}
     >
-      <Icon size={14} aria-hidden="true" strokeWidth={2.25} />
+      <Icon size={14} aria-hidden="true" strokeWidth={2.25} className="shrink-0" />
       {children ?? label}
     </span>
   )

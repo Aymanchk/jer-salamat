@@ -2,6 +2,7 @@ import { Check, ChartLine, ClipboardList, MapPin, Sprout, type LucideIcon } from
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { QUESTIONS } from '@/content/questions'
+import { useT } from '@/i18n'
 import { cx } from '@/lib'
 import { useSession } from '@/state/session'
 
@@ -12,10 +13,10 @@ interface FlowStep {
 }
 
 const STEPS: FlowStep[] = [
-  { id: 'field', label: 'Field', icon: MapPin },
-  { id: 'questions', label: 'Questions', icon: ClipboardList },
-  { id: 'climate', label: 'Climate', icon: ChartLine },
-  { id: 'plan', label: 'Plan', icon: Sprout },
+  { id: 'field', label: 'step.field', icon: MapPin },
+  { id: 'questions', label: 'step.questions', icon: ClipboardList },
+  { id: 'climate', label: 'step.climate', icon: ChartLine },
+  { id: 'plan', label: 'step.plan', icon: Sprout },
 ]
 
 /** Routes that show the stepper. */
@@ -43,6 +44,7 @@ export function FlowStepper() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const { field, answers } = useSession()
+  const { t } = useT()
   const onResults = pathname === '/results'
   const section = useResultsSection(onResults)
 
@@ -71,7 +73,7 @@ export function FlowStepper() {
   }
 
   return (
-    <nav aria-label="Progress" className="glass sticky top-header z-[1050] border-b border-glass print:hidden">
+    <nav aria-label={t('step.progress')} className="glass sticky top-header z-[1050] border-b border-glass print:hidden">
       <ol className="mx-auto flex h-stepper max-w-content items-center gap-1 px-gutter sm:gap-2">
         {STEPS.map((step, i) => {
           const active = i === currentIndex
@@ -102,8 +104,8 @@ export function FlowStepper() {
                 >
                   <Icon size={14} strokeWidth={2.5} />
                 </span>
-                <span className={cx('truncate', !active && 'max-sm:sr-only')}>{step.label}</span>
-                {done && <span className="sr-only"> (done)</span>}
+                <span className={cx('truncate', !active && 'max-sm:sr-only')}>{t(step.label)}</span>
+                {done && <span className="sr-only"> {t('step.done')}</span>}
               </button>
               {i < STEPS.length - 1 && <span aria-hidden="true" className="h-px w-3 shrink-0 bg-border-strong sm:w-4" />}
             </li>

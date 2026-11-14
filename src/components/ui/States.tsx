@@ -1,5 +1,6 @@
 import { CloudOff, Inbox, RefreshCw, type LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { useT } from '@/i18n'
 import { cx } from '@/lib'
 import { Button } from './Button'
 
@@ -68,28 +69,24 @@ interface ErrorStateProps {
 }
 
 /** Something failed. Says what happened and what the user can do. */
-export function ErrorState({
-  title = 'NASA data is temporarily unavailable',
-  children = 'Check your connection and try again.',
-  onRetry,
-  ...rest
-}: ErrorStateProps) {
+export function ErrorState({ title, children, onRetry, ...rest }: ErrorStateProps) {
+  const { t } = useT()
   return (
     <StateShell
       icon={CloudOff}
       tone="danger"
       role="alert"
-      title={title}
+      title={title ?? t('state.errorTitle')}
       action={
         onRetry && (
           <Button variant="outline" onClick={onRetry} iconLeft={<RefreshCw size={18} />}>
-            Try again
+            {t('state.retry')}
           </Button>
         )
       }
       {...rest}
     >
-      {children}
+      {children ?? t('state.errorBody')}
     </StateShell>
   )
 }

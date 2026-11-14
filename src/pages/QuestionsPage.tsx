@@ -8,11 +8,14 @@ import { EmptyState } from '@/components/ui/States'
 import { StepProgress } from '@/components/ui/StepProgress'
 import { QUESTIONS, UNKNOWN_OPTION, type QuestionOption } from '@/content/questions'
 import type { FarmerAnswers } from '@/core'
+import { useT } from '@/i18n'
 import { cx } from '@/lib'
 import { useSession } from '@/state/session'
 
 interface OptionButtonProps {
   option: QuestionOption
+  label: string
+  hint?: string
   name: string
   selected: boolean
   onSelect: () => void
@@ -20,7 +23,7 @@ interface OptionButtonProps {
   quiet?: boolean
 }
 
-function OptionButton({ option, name, selected, onSelect, quiet }: OptionButtonProps) {
+function OptionButton({ option, label, hint, name, selected, onSelect, quiet }: OptionButtonProps) {
   const Icon = option.icon
   return (
     <label
@@ -42,8 +45,8 @@ function OptionButton({ option, name, selected, onSelect, quiet }: OptionButtonP
         <Icon size={24} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-lg font-bold leading-snug text-text">{option.label}</span>
-        {option.hint && <span className="block text-sm text-text-muted">{option.hint}</span>}
+        <span className="block text-lg font-bold leading-snug text-text">{label}</span>
+        {hint && <span className="block text-sm text-text-muted">{hint}</span>}
       </span>
       <span
         aria-hidden="true"
@@ -60,20 +63,21 @@ function OptionButton({ option, name, selected, onSelect, quiet }: OptionButtonP
 
 export default function QuestionsPage() {
   const { field } = useSession()
+  const { t } = useT()
   if (!field) {
     return (
       <Container className="py-10">
         <EmptyState
           headingLevel="h1"
           icon={MapPinOff}
-          title="Pick your field first"
+          title={t('state.fieldFirst')}
           action={
             <Button to="/field" iconRight={<ArrowRight size={20} />}>
-              Pick my field
+              {t('state.pickField')}
             </Button>
           }
         >
-          The questions are about one field. Place a pin on the map, then come back.
+          {t('state.fieldFirstBody')}
         </EmptyState>
       </Container>
     )
@@ -83,6 +87,7 @@ export default function QuestionsPage() {
 
 function Wizard() {
   const { answers, setAnswer } = useSession()
+  const { t } = useT()
   const navigate = useNavigate()
   const [index, setIndex] = useState(0)
   const [direction, setDirection] = useState(1)
@@ -113,7 +118,7 @@ function Wizard() {
   return (
     <div className="flex flex-1 flex-col">
       <Container className="flex max-w-2xl flex-1 flex-col pt-4 sm:pt-8">
-        <StepProgress current={index + 1} total={QUESTIONS.length} label="Question" />
+        <StepProgress current={index + 1} total={QUESTIONS.length} text={t('q.counter', { n: String(index + 1), total: String(QUESTIONS.length) })} />
 
         <div className="flex-1 overflow-x-clip pb-6 pt-5">
           {/* Enter-only slide: the new question is readable at once, no blank frame. */}
@@ -126,14 +131,14 @@ function Wizard() {
             >
               <legend className="mb-4 p-0 sm:mb-5">
                 <h1 ref={headingRef} tabIndex={-1} className="text-2xl outline-none sm:text-3xl">
-                  {question.title}
+                  {t(`q.${question.id}.title`)}
                 </h1>
-                <span className="mt-2 block text-lg text-text">{question.help}</span>
+                <span className="mt-2 block text-lg text-text">{t(`q.${question.id}.help`)}</span>
                 <span className="mt-2 flex items-start gap-2 text-text-muted">
                   <Lightbulb size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-accent-text" />
                   <span>
-                    <span className="sr-only">Why we ask: </span>
-                    {question.why}
+                    <span className="sr-only">{t('q.whyLabel')} </span>
+                    {t(`q.${question.id}.why`)}
                   </span>
                 </span>
               </legend>
@@ -143,6 +148,8 @@ function Wizard() {
                   <OptionButton
                     key={option.value}
                     option={option}
+                    label={t(`opt.${question.id}.${option.value}`)}
+                    hint={option.hasHint ? t(`opt.${question.id}.${option.value}.hint`) : undefined}
                     name={question.id}
                     selected={selected === option.value}
                     onSelect={() => select(option.value)}
@@ -151,6 +158,7 @@ function Wizard() {
                 <div className="sm:col-span-2">
                   <OptionButton
                     option={UNKNOWN_OPTION}
+                    label={t('opt.unknown')}
                     name={question.id}
                     selected={selected === UNKNOWN_OPTION.value}
                     onSelect={() => select(UNKNOWN_OPTION.value)}
@@ -165,11 +173,11 @@ function Wizard() {
       {/* Sticky action bar keeps Back and Next within thumb reach. */}
       <div className="glass sticky bottom-0 border-t border-glass">
         <Container className="flex max-w-2xl gap-3 py-3">
-          <Button variant="outline" size="lg" onClick={back} iconLeft={<ArrowLeft size={20} />}>
-            Back
+          <Button variant="outline" size="lg" onClick={back} iconLeft={<ArrowLeft size={20} />} className="shrink-0 max-sm:px-4">
+            {t('q.back')}
           </Button>
-          <Button size="lg" onClick={next} disabled={!selected} iconRight={<ArrowRight size={22} />} className="flex-1">
-            {isLast ? 'See results' : 'Next'}
+          <Button size="lg" onClick={next} disabled={!selected} iconRight={<ArrowRight size={22} />} className="min-w-0 flex-1 max-sm:px-4">
+            {isLast ? t('q.results') : t('q.next')}
           </Button>
         </Container>
       </div>

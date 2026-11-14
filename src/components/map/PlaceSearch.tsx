@@ -1,5 +1,6 @@
 import { LoaderCircle, MapPin, Search, X } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
+import { useT } from '@/i18n'
 import { cx } from '@/lib'
 
 export interface Place {
@@ -25,7 +26,7 @@ const CHUY_VIEWBOX = '72.8,43.3,76.2,42.4'
 
 let lastRequestAt = 0
 
-async function searchPlaces(query: string, signal: AbortSignal): Promise<Place[]> {
+async function searchPlaces(query: string, signal: AbortSignal, lang: string): Promise<Place[]> {
   const wait = lastRequestAt + MIN_GAP_MS - Date.now()
   if (wait > 0) await new Promise((r) => setTimeout(r, wait))
   if (signal.aborted) throw new DOMException('Aborted', 'AbortError')
@@ -36,7 +37,7 @@ async function searchPlaces(query: string, signal: AbortSignal): Promise<Place[]
     countrycodes: 'kg',
     limit: '8',
     viewbox: CHUY_VIEWBOX,
-    'accept-language': 'en',
+    'accept-language': lang,
     q: query,
   })
   const res = await fetch(`${ENDPOINT}?${params}`, { signal })
@@ -72,6 +73,7 @@ interface PlaceSearchProps {
 
 /** "Search your village or town", backed by OpenStreetMap Nominatim. */
 export function PlaceSearch({ onPick, className }: PlaceSearchProps) {
+  const { t, lang } = useT()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<Place[]>([])
   const [status, setStatus] = useState<Status>('idle')
@@ -90,7 +92,7 @@ export function PlaceSearch({ onPick, className }: PlaceSearchProps) {
     const controller = new AbortController()
     const timer = setTimeout(() => {
       setStatus('loading')
-      searchPlaces(q, controller.signal)
+      searchPlaces(q, controller.signal, lang)
         .then((places) => {
           setResults(places)
           setActive(-1)
@@ -106,7 +108,7 @@ export function PlaceSearch({ onPick, className }: PlaceSearchProps) {
       clearTimeout(timer)
       controller.abort()
     }
-  }, [query])
+  }, [query, lang])
 
   // Close the list when tapping elsewhere.
   useEffect(() => {
@@ -155,12 +157,12 @@ export function PlaceSearch({ onPick, className }: PlaceSearchProps) {
         <input
           type="search"
           role="combobox"
-          aria-label="Search your village or town"
+          aria-label={t('search.placeholder')}
           aria-expanded={showList}
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
-          placeholder="Search your village or town"
+          placeholder={t('search.placeholder')}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value)
@@ -178,7 +180,7 @@ export function PlaceSearch({ onPick, className }: PlaceSearchProps) {
               setQuery('')
               setResults([])
             }}
-            aria-label="Clear search"
+            aria-label={t('search.clear')}
             className="-mr-2 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-pill text-text-muted hover:text-text"
           >
             <X size={18} aria-hidden="true" />
@@ -188,7 +190,7 @@ export function PlaceSearch({ onPick, className }: PlaceSearchProps) {
 
       {showList && (
         <div className="glass absolute inset-x-0 top-full z-popover mt-2 overflow-hidden rounded-card border border-glass shadow-raised">
-          <ul id={listId} role="listbox" aria-label="Places">
+          <ul id={listId} role="listbox" aria-label={t('search.places')}>
             {results.map((place, i) => (
               <li
                 key={`${place.lat},${place.lon}`}
@@ -211,11 +213,11 @@ export function PlaceSearch({ onPick, className }: PlaceSearchProps) {
             ))}
           </ul>
           <p role="status" className="px-4 py-3 text-sm text-text-muted empty:hidden">
-            {status === 'loading' && results.length === 0 ? 'Searching…' : ''}
-            {status === 'done' && results.length === 0 ? 'No places found. Try another spelling, or tap the map.' : ''}
-            {status === 'error' ? 'Search is not available right now. Tap the map to place your pin instead.' : ''}
+            {status === 'loading' && results.length === 0 ? t('search.searching') : ''}
+            {status === 'done' && results.length === 0 ? t('search.none') : ''}
+            {status === 'error' ? t('search.error') : ''}
           </p>
-          <p className="border-t border-border px-4 py-1.5 text-sm text-text-muted">Search by OpenStreetMap</p>
+          <p className="border-t border-border px-4 py-1.5 text-sm text-text-muted">{t('search.by')}</p>
         </div>
       )}
     </div>

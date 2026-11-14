@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/Badge'
 import { CountUp } from '@/components/ui/CountUp'
 import { parsePower, temperatureChange, type ClimateData, type PowerResponse } from '@/core'
 import { useCanRender3D } from '@/hooks/useDeviceCapability'
+import { useT, type TFunc } from '@/i18n'
 import { cx } from '@/lib'
 
 const ValleyTerrain = lazy(() => import('./ValleyTerrain'))
@@ -20,7 +21,7 @@ interface Stat {
   tone: string
 }
 
-function statsOf(data: ClimateData): Stat[] {
+function statsOf(data: ClimateData, t: TFunc): Stat[] {
   const p = data.series.precipitation.points
   const s = data.series.soilWetness.points
   const change = temperatureChange(data)
@@ -31,30 +32,30 @@ function statsOf(data: ClimateData): Stat[] {
   return [
     {
       icon: ThermometerSun,
-      label: 'Warmer than in 1986',
+      label: t('valley.warmer'),
       value: tChange,
       decimals: 1,
       prefix: tChange > 0 ? '+' : '',
       suffix: ' °C',
-      note: `Along the 40-year trend line of yearly mean air temperature. Comparing ${change.firstSpan} with ${change.lastSpan} averages: ${change.decades > 0 ? '+' : '−'}${Math.abs(change.decades).toFixed(2)} °C.`,
+      note: t('valley.warmerNote', { first: change.firstSpan, last: change.lastSpan, decades: { n: change.decades, d: 2, sign: true } }),
       tone: 'text-data-temp',
     },
     {
       icon: CloudRain,
-      label: 'Rain and snow a year',
+      label: t('valley.rain'),
       value: pMean,
       decimals: 0,
       suffix: ' mm',
-      note: `40-year average. The driest year had only ${Math.round(pMin)} mm.`,
+      note: t('valley.rainNote', { min: { n: pMin, d: 0 } }),
       tone: 'text-data-precip',
     },
     {
       icon: Droplets,
-      label: 'Root zone soil wetness',
+      label: t('valley.soil'),
       value: sMean,
       decimals: 2,
       suffix: '',
-      note: '40-year average, on a scale from 0 (dry) to 1 (soaked).',
+      note: t('valley.soilNote'),
       tone: 'text-data-soil',
     },
   ]
@@ -62,6 +63,7 @@ function statsOf(data: ClimateData): Stat[] {
 
 /** Scene 3: the valley, with real NASA POWER numbers for the Sokuluk area. */
 export function ValleyStats() {
+  const { t } = useT()
   const [data, setData] = useState<ClimateData | null>(null)
   const [failed, setFailed] = useState(false)
   const [showTerrain, setShowTerrain] = useState(false)
@@ -84,7 +86,7 @@ export function ValleyStats() {
     return () => observer.disconnect()
   }, [can3D])
 
-  const stats = data ? statsOf(data) : null
+  const stats = data ? statsOf(data, t) : null
 
   return (
     <section ref={ref} aria-labelledby="valley-title" data-theme="dark" className="relative overflow-hidden bg-bg pb-8 pt-section text-text">
@@ -98,11 +100,11 @@ export function ValleyStats() {
       </div>
 
       <Container className="relative">
-        <p className="font-display text-sm font-medium uppercase tracking-[0.16em] text-accent-text">The valley · Sokuluk area</p>
+        <p className="font-display text-sm font-medium uppercase tracking-[0.16em] text-accent-text">{t('valley.eyebrow')}</p>
         <h2 id="valley-title" className="mt-2 max-w-2xl text-3xl sm:text-5xl">
-          40 years of climate, seen from orbit.
+          {t('valley.title')}
         </h2>
-        {showTerrain && <p className="mt-2 text-sm text-text-muted">Terrain shown is illustrative, not a real elevation model.</p>}
+        {showTerrain && <p className="mt-2 text-sm text-text-muted">{t('valley.illustrative')}</p>}
 
         <ul className="mt-[16rem] grid gap-3 sm:mt-[19rem] md:grid-cols-3">
           {(stats ?? Array.from({ length: 3 }, () => null)).map((stat, i) => (
@@ -122,14 +124,14 @@ export function ValleyStats() {
                   <p className="mt-2 text-sm text-text-muted">{stat.note}</p>
                 </>
               ) : (
-                <p className="text-text-muted">{failed ? 'NASA data is not available right now.' : 'Loading NASA data…'}</p>
+                <p className="text-text-muted">{failed ? t('valley.failed') : t('valley.loading')}</p>
               )}
             </li>
           ))}
         </ul>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Badge type="historical" />
-          <span className="text-sm text-text-muted">NASA POWER, monthly, 1986–2025, point 42.86° N 74.30° E (about 50 km grid).</span>
+          <span className="text-sm text-text-muted">{t('valley.source')}</span>
         </div>
       </Container>
     </section>

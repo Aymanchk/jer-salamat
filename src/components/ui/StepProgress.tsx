@@ -4,20 +4,20 @@ interface StepProgressProps {
   /** 1-based current step. */
   current: number
   total: number
-  /** Noun for one step, for example "Question". */
-  label?: string
+  /** Visible and spoken text, for example "Question 2 of 5". */
+  text: string
   className?: string
 }
 
-export function StepProgress({ current, total, label = 'Step', className }: StepProgressProps) {
+export function StepProgress({ current, total, text, className }: StepProgressProps) {
   return (
     <div className={className}>
       <p className="mb-2 text-sm font-bold text-text-muted" aria-hidden="true">
-        {label} {current} of {total}
+        {text}
       </p>
       <div
         role="progressbar"
-        aria-label={`${label} ${current} of ${total}`}
+        aria-label={text}
         aria-valuemin={1}
         aria-valuemax={total}
         aria-valuenow={current}

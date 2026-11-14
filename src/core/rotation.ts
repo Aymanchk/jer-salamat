@@ -1,101 +1,103 @@
 /**
  * Rules-based rotation engine. Framework-free (no React).
  *
- * Scores come from qualitative crop levels in src/data/rotations.json
- * (PRELIMINARY until sourced). The UI shows words (better / same / worse,
- * low / medium / high), never these internal numbers.
+ * Inputs and their sources:
+ * - the farmer's answers,
+ * - NASA POWER climate trends (src/core/climate.ts),
+ * - crop reference data in src/data/rotations.json: FAO general water-need
+ *   ranges and FAO rotation guidance. These are reference values, never
+ *   computed from NASA data, and never turned into field irrigation numbers.
+ * Income is never estimated: there is no verified local yield, price or cost data.
+ *
+ * Every output sentence is a Msg (a translation key with parameters).
  */
 import type { ClimateData } from './climate'
-import type { CropId, FarmerAnswers, StrategyId, StrategyScores } from './types'
+import type { CropId, FarmerAnswers, Msg, QuestionId, StrategyId } from './types'
 
 export type Level = 'low' | 'medium' | 'high'
 export type SoilLevel = 'depletes' | 'neutral' | 'builds'
 
-export interface Sourced<T> {
-  value: T
-  source: string
-  preliminary: boolean
-}
-
 export interface CropData {
-  label: string
-  waterNeed: Sourced<Level>
-  soilEffect: Sourced<SoilLevel>
-  income: Sourced<Level>
+  /** FAO general reference range, mm per growing period. null = no FAO range. */
+  waterMm: [number, number] | null
+  waterSource: string
+  waterNote?: string
+  soilEffect: { value: SoilLevel; source: string }
+  legume?: boolean
   perennial?: boolean
-}
-
-export interface StrategyData {
-  id: StrategyId
-  sequence: CropId[]
-  /** "...IfWaterShort" variants are used only when the farmer said water is short or the field is rain-only. */
-  steps: { thisSeason: string; nextSeason: string; later: string; laterIfWaterShort?: string }
 }
 
 export interface RotationData {
   crops: Record<CropId, CropData>
-  strategies: StrategyData[]
-  currentRotations: Record<string, { label: string; sequence: CropId[] }>
-  assumedCurrent: string
+  strategies: Array<{ id: StrategyId; sequence: CropId[] }>
+  currentRotations: Record<string, CropId[]>
+  reference: { id: string; source: string; sequence: CropId[] }
 }
 
-export type PlanId = StrategyId | 'current'
-export type Comparison = 'better' | 'same' | 'worse'
-export type Confidence = 'High' | 'Medium' | 'Low'
+export type PlanId = StrategyId | 'current' | 'reference'
+export type Comparison = 'better' | 'same' | 'worse' | 'unknown'
+export type Confidence = 'high' | 'medium' | 'low'
+/** Where a statement comes from. */
+export type Basis = 'answers' | 'nasa' | 'guidance'
+
+export interface WaterRange {
+  /** Average of the FAO minimums and maximums over the crops that have a range. */
+  min: number
+  max: number
+  mid: number
+  /** Crops in the sequence without an FAO range (not counted). */
+  missing: CropId[]
+}
 
 export interface PlanResult {
   id: PlanId
   sequence: CropId[]
-  scores: StrategyScores
-  /** Word labels for the scores. */
-  levels: { water: Level; soil: Level; economy: Level }
-  /** Versus the farmer's current rotation. Undefined for the current plan itself. */
-  vsCurrent?: { water: Comparison; soil: Comparison; economy: Comparison }
-  why: string[]
-  benefits: string[]
-  limitations: string[]
-  missingInfo: string[]
-  preliminary: boolean
+  water: WaterRange | null
+  waterLevel: Level | null
+  soil: number
+  soilLevel: Level
+  vsCurrent?: { water: Comparison; soil: Comparison }
+  why: Msg[]
+  benefits: Msg[]
+  limitations: Msg[]
+  missingInfo: Msg[]
+}
+
+export interface Driver {
+  id: QuestionId
+  /** "plan": choosing differently changes the recommended plan. "details": it changes the reasons or comparison. */
+  effect: 'plan' | 'details' | 'none' | 'unanswered'
 }
 
 export interface Recommendation {
   best: PlanResult
-  /** One sentence that names the plan and the reason. */
-  headline: string
-  steps: { label: string; text: string }[]
+  headline: Msg
+  steps: { label: Msg; text: Msg; basis: Basis[] }[]
   confidence: Confidence
-  confidenceReason: string
+  confidenceReason: Msg
+  /** The three alternatives, best fit first. */
   plans: PlanResult[]
+  /** The farmer's rotation, or the regional reference when they did not say. */
   current: PlanResult
-  /** True when the farmer chose "I don't know" for the current rotation. */
-  currentAssumed: boolean
+  currentIsReference: boolean
+  /** Which answers shaped this plan. */
+  drivers: Driver[]
 }
 
-const LEVEL_VALUE: Record<Level, number> = { low: 0, medium: 0.5, high: 1 }
 const SOIL_VALUE: Record<SoilLevel, number> = { depletes: 0, neutral: 0.5, builds: 1 }
 const REPEAT_PENALTY = 0.15
-const SAME_BAND = 0.15
+const SOIL_BAND = 0.15
+/** Water ranges closer than 5% count as "same". */
+const WATER_BAND = 0.05
+/** Midpoints of the FAO ranges used here run from 425 mm (peas) to 1200 mm (alfalfa). */
+const WATER_LOW = 525
+const WATER_HIGH = 700
 
-const TITLES: Record<PlanId, string> = {
-  'water-saving': 'Water saving',
-  'soil-health': 'Soil health',
-  economic: 'Higher income',
-  current: 'Your current rotation',
-}
-
-export function planTitle(id: PlanId): string {
-  return TITLES[id]
-}
-
-function toLevel(score: number): Level {
-  return score < 0.34 ? 'low' : score < 0.67 ? 'medium' : 'high'
-}
-
-function compare(a: number, b: number): Comparison {
-  return a - b > SAME_BAND ? 'better' : b - a > SAME_BAND ? 'worse' : 'same'
-}
+const QUESTION_IDS: QuestionId[] = ['currentRotation', 'soilType', 'irrigation', 'waterLimited', 'priority']
 
 const avg = (xs: number[]) => xs.reduce((s, x) => s + x, 0) / xs.length
+const crops = (ids: CropId[], sep: 'arrow' | 'and' = 'and') => ({ crops: ids, sep })
+const unique = <T,>(xs: T[]) => [...new Set(xs)]
 
 interface Context {
   rainOnly: boolean
@@ -118,177 +120,178 @@ function contextOf(answers: FarmerAnswers, climate: ClimateData | null): Context
   }
 }
 
-function scoreSequence(sequence: CropId[], data: RotationData, ctx: Context): StrategyScores {
-  const crops = sequence.map((c) => data.crops[c])
-  // Water score: higher = saves more water. Thirsty crops count double on rain-only or sandy fields.
-  const thirst = crops.map((c) => {
-    const v = LEVEL_VALUE[c.waterNeed.value]
-    return ctx.rainOnly || ctx.sandy ? Math.min(1, v * 1.25) : v
-  })
-  const water = 1 - avg(thirst)
-  let soil = avg(crops.map((c) => SOIL_VALUE[c.soilEffect.value]))
-  for (let i = 1; i < sequence.length; i++) {
-    if (sequence[i] === sequence[i - 1] && !data.crops[sequence[i]].perennial) soil -= REPEAT_PENALTY
-  }
-  soil = Math.max(0, soil)
-  // On rain-only fields, thirsty crops are likely to fail, so expected income drops.
-  const economy = avg(
-    crops.map((c) => {
-      const v = LEVEL_VALUE[c.income.value]
-      return ctx.rainOnly && c.waterNeed.value === 'high' ? v * 0.4 : v
-    }),
-  )
-  return { water, soil, economy }
+function waterOf(sequence: CropId[], data: RotationData): WaterRange | null {
+  const known = sequence.filter((c) => data.crops[c].waterMm)
+  const missing = unique(sequence.filter((c) => !data.crops[c].waterMm))
+  if (known.length === 0) return null
+  const min = avg(known.map((c) => data.crops[c].waterMm![0]))
+  const max = avg(known.map((c) => data.crops[c].waterMm![1]))
+  return { min: Math.round(min), max: Math.round(max), mid: (min + max) / 2, missing }
 }
 
 function hasRepeat(sequence: CropId[], data: RotationData): boolean {
   return sequence.some((c, i) => i > 0 && c === sequence[i - 1] && !data.crops[c].perennial)
 }
 
+function soilOf(sequence: CropId[], data: RotationData): number {
+  let soil = avg(sequence.map((c) => SOIL_VALUE[data.crops[c].soilEffect.value]))
+  for (let i = 1; i < sequence.length; i++) {
+    if (sequence[i] === sequence[i - 1] && !data.crops[sequence[i]].perennial) soil -= REPEAT_PENALTY
+  }
+  return Math.max(0, Math.min(1, soil))
+}
+
+const levelOfSoil = (s: number): Level => (s < 0.34 ? 'low' : s < 0.67 ? 'medium' : 'high')
+const levelOfWater = (w: WaterRange | null): Level | null => (!w ? null : w.mid < WATER_LOW ? 'low' : w.mid <= WATER_HIGH ? 'medium' : 'high')
+
+function compareWater(a: WaterRange | null, b: WaterRange | null): Comparison {
+  if (!a || !b) return 'unknown'
+  const diff = (a.mid - b.mid) / b.mid
+  return diff < -WATER_BAND ? 'better' : diff > WATER_BAND ? 'worse' : 'same'
+}
+function compareSoil(a: number, b: number): Comparison {
+  return a - b > SOIL_BAND ? 'better' : b - a > SOIL_BAND ? 'worse' : 'same'
+}
+
 function explain(id: PlanId, sequence: CropId[], data: RotationData, ctx: Context, answers: FarmerAnswers) {
-  const names = sequence.map((c) => data.crops[c].label.toLowerCase())
-  const legumes = sequence.filter((c) => data.crops[c].soilEffect.value === 'builds').map((c) => data.crops[c].label.toLowerCase())
-  const thirsty = [...new Set(sequence.filter((c) => data.crops[c].waterNeed.value === 'high').map((c) => data.crops[c].label.toLowerCase()))]
-  const why: string[] = []
-  const benefits: string[] = []
-  const limitations: string[] = []
-  const missingInfo: string[] = []
+  const legumes = unique(sequence.filter((c) => data.crops[c].legume))
+  const thirsty = unique(sequence.filter((c) => (data.crops[c].waterMm?.[1] ?? 0) >= 750))
+  const why: Msg[] = []
+  const benefits: Msg[] = []
+  const limitations: Msg[] = []
+  const missingInfo: Msg[] = []
 
   if (id === 'water-saving') {
-    why.push('Most crops in this plan grow in the cool part of the year or need little summer water.')
-    if (ctx.waterShort) why.push(ctx.rainOnly ? 'You said the field is rain-only, so we put low-water crops first.' : 'You said water is often short in summer, so we put low-water crops first.')
-    if (ctx.warming) why.push('NASA data shows warmer years around your field, so summer water losses are larger than before.')
-    benefits.push('Less canal or pump water in July and August.', 'Lower risk in a dry year.')
-    limitations.push('Grain prices are low, so income is usually lower than with sugar beet or vegetables.')
+    why.push({ key: 'why.ws.lowWater' })
+    if (ctx.waterShort) why.push({ key: ctx.rainOnly ? 'why.ws.rainOnly' : 'why.ws.waterShort' })
+    if (ctx.warming) why.push({ key: 'why.ws.warming' })
+    benefits.push({ key: 'benefit.ws.lessWater' }, { key: 'benefit.ws.dryYear' })
+    limitations.push({ key: 'limit.ws.fewLegumes' })
   } else if (id === 'soil-health') {
-    why.push(`It includes ${[...new Set(legumes)].join(' and ')}, which add nitrogen to the soil.`)
-    why.push('Alfalfa roots go deep and loosen hard soil.')
-    benefits.push('Next crops need less fertilizer.', 'Breaks pest and weed cycles of grain-only fields.')
-    limitations.push('Alfalfa needs regular watering in its first year.', 'Income comes later; alfalfa pays mostly as feed or hay.')
+    why.push({ key: 'why.sh.legumes', params: { crops: crops(legumes) } }, { key: 'why.sh.roots' })
+    benefits.push({ key: 'benefit.sh.fertilizer' }, { key: 'benefit.sh.pests' })
+    limitations.push({ key: 'limit.sh.water' }, { key: 'limit.sh.later' })
   } else if (id === 'economic') {
-    why.push('Sugar beet and vegetables usually earn the most per hectare in the Chuy Valley.')
-    why.push('Wheat and beans between them give the soil a lighter year.')
-    benefits.push('Highest income potential of the plans.')
-    limitations.push('Needs a reliable irrigation turn and a buyer or contract.', 'Prices change every year; we do not use live market prices.')
-    if (ctx.rainOnly) limitations.push('You said the field is rain-only: sugar beet and vegetables are risky without irrigation.')
+    why.push({ key: 'why.mc.sale' }, { key: 'why.mc.break' })
+    limitations.push({ key: 'limit.mc.irrigation' })
+    if (ctx.rainOnly) limitations.push({ key: 'limit.mc.rainOnly' })
+  } else if (id === 'reference') {
+    why.push({ key: 'why.ref.what' }, { key: 'why.ref.notYours' })
+    benefits.push({ key: 'benefit.ref.grasses' })
   } else {
-    why.push(`What you grow now: ${names.join(' → ')}.`)
-    if (hasRepeat(sequence, data)) limitations.push('The same crop on the same field year after year wears out the soil and builds up pests.')
-    if (thirsty.length > 0 && ctx.waterShort) limitations.push(`${thirsty.join(' and ')} need a lot of summer water, which you said is often short.`)
-    benefits.push('You already know these crops, the work and the buyers.')
+    why.push({ key: 'why.cur.what', params: { seq: crops(sequence, 'arrow') } })
+    if (hasRepeat(sequence, data)) limitations.push({ key: 'limit.cur.repeat' })
+    if (thirsty.length > 0 && ctx.waterShort) limitations.push({ key: 'limit.cur.thirsty', params: { crops: crops(thirsty) } })
+    benefits.push({ key: 'benefit.cur.known' })
   }
 
-  if (id !== 'current' && thirsty.length > 0 && ctx.rainOnly) {
-    limitations.push(`${thirsty.join(' and ')} need irrigation; on a rain-only field the harvest is at risk.`)
+  if (id !== 'current' && id !== 'reference' && thirsty.length > 0 && ctx.rainOnly) {
+    limitations.push({ key: 'limit.rainOnlyThirsty', params: { crops: crops(thirsty) } })
   }
-  if (ctx.drying && id !== 'current') why.push('The soil around your field has become drier over 40 years.')
+  if (ctx.sandy && thirsty.length > 0 && id !== 'reference') limitations.push({ key: 'limit.sandy', params: { crops: crops(thirsty) } })
+  if (ctx.drying && id !== 'current' && id !== 'reference') why.push({ key: 'why.drying' })
 
-  if (answers.soilType === undefined || answers.soilType === 'unknown') missingInfo.push('Your soil type. A soil test would make this plan more reliable.')
-  if (answers.irrigation === undefined || answers.irrigation === 'unknown') missingInfo.push('Whether you can irrigate. This changes which crops are safe.')
-  missingInfo.push('Local prices and your costs. We use rough levels, not real prices.')
+  if (answers.soilType === undefined || answers.soilType === 'unknown') missingInfo.push({ key: 'missing.soil' })
+  if (answers.irrigation === undefined || answers.irrigation === 'unknown') missingInfo.push({ key: 'missing.irrigation' })
+  missingInfo.push({ key: 'missing.income' })
   return { why, benefits, limitations, missingInfo }
 }
 
-function weightsFor(answers: FarmerAnswers, ctx: Context): StrategyScores {
-  const w = { water: 1, soil: 1, economy: 1 }
-  if (ctx.waterShort) w.water += 1
+function weightsFor(answers: FarmerAnswers, ctx: Context) {
+  const w = { water: 1, soil: 1 }
+  if (ctx.waterShort) w.water += 1.5
+  if (ctx.sandy) w.water += 0.5
   if (ctx.warming || ctx.drying) w.water += 0.5
   if (answers.priority === 'water') w.water += 3
   if (answers.priority === 'soil') w.soil += 3
-  if (answers.priority === 'income') w.economy += 3
   return w
 }
 
+/** Higher = needs less water. Midpoints run from about 425 to 1200 mm. */
+const waterScore = (w: WaterRange | null) => (w ? 1 - Math.min(1, Math.max(0, (w.mid - 425) / (1200 - 425))) : 0.5)
+
 function unknownCount(answers: FarmerAnswers): number {
-  const ids: (keyof FarmerAnswers)[] = ['currentRotation', 'soilType', 'irrigation', 'waterLimited', 'priority']
-  return ids.filter((id) => answers[id] === undefined || answers[id] === 'unknown').length
+  return QUESTION_IDS.filter((id) => answers[id] === undefined || answers[id] === 'unknown').length
 }
 
-export function recommend(answers: FarmerAnswers, climate: ClimateData | null, data: RotationData): Recommendation {
+function core(answers: FarmerAnswers, climate: ClimateData | null, data: RotationData) {
   const ctx = contextOf(answers, climate)
-  const currentKey =
-    answers.currentRotation && answers.currentRotation !== 'unknown' ? answers.currentRotation : data.assumedCurrent
-  const currentAssumed = currentKey !== answers.currentRotation
-  const currentSeq = data.currentRotations[currentKey].sequence
-  const preliminary = Object.values(data.crops).some((c) => c.waterNeed.preliminary || c.soilEffect.preliminary || c.income.preliminary)
+  const known = answers.currentRotation && answers.currentRotation !== 'unknown' ? data.currentRotations[answers.currentRotation] : undefined
+  const currentIsReference = !known
 
   const build = (id: PlanId, sequence: CropId[]): PlanResult => {
-    const scores = scoreSequence(sequence, data, ctx)
-    return {
-      id,
-      sequence,
-      scores,
-      levels: { water: toLevel(scores.water), soil: toLevel(scores.soil), economy: toLevel(scores.economy) },
-      ...explain(id, sequence, data, ctx, answers),
-      preliminary,
-    }
+    const water = waterOf(sequence, data)
+    const soil = soilOf(sequence, data)
+    return { id, sequence, water, waterLevel: levelOfWater(water), soil, soilLevel: levelOfSoil(soil), ...explain(id, sequence, data, ctx, answers) }
   }
 
-  const current = build('current', currentSeq)
+  const current = known ? build('current', known) : build('reference', data.reference.sequence)
   const plans = data.strategies.map((s) => {
     const plan = build(s.id, s.sequence)
-    plan.vsCurrent = {
-      water: compare(plan.scores.water, current.scores.water),
-      soil: compare(plan.scores.soil, current.scores.soil),
-      economy: compare(plan.scores.economy, current.scores.economy),
-    }
+    plan.vsCurrent = { water: compareWater(plan.water, current.water), soil: compareSoil(plan.soil, current.soil) }
     // Never show "worse on water" without saying why.
     if (plan.vsCurrent.water === 'worse') {
-      const label = data.currentRotations[currentKey].label.toLowerCase()
-      const reason = hasRepeat(currentSeq, data)
-        ? 'but growing the same crop every year wears out the soil and builds up pests and disease.'
+      const key = hasRepeat(current.sequence, data)
+        ? 'why.worseWater.repeat'
         : plan.vsCurrent.soil === 'better'
-          ? 'but this plan is better for the soil.'
-          : 'so switch only if soil or income matter more to you.'
-      const text = `Your current rotation (${label}) needs even less water, ${reason}`
-      if (plan.id === 'water-saving') plan.why.unshift(text)
-      else plan.limitations.unshift(text)
+          ? 'why.worseWater.soil'
+          : 'why.worseWater.other'
+      const msg: Msg = { key, params: { plan: { plan: current.id } } }
+      if (plan.id === 'water-saving') plan.why.unshift(msg)
+      else plan.limitations.unshift(msg)
     }
     return plan
   })
 
   const w = weightsFor(answers, ctx)
-  const fit = (p: PlanResult) => p.scores.water * w.water + p.scores.soil * w.soil + p.scores.economy * w.economy
-  const best = [...plans].sort((a, b) => fit(b) - fit(a))[0]
+  const fit = (p: PlanResult) => waterScore(p.water) * w.water + p.soil * w.soil
   plans.sort((a, b) => fit(b) - fit(a))
-
-  const strategy = data.strategies.find((s) => s.id === best.id)!
-  const crops = best.sequence.map((c) => data.crops[c].label.toLowerCase())
-  const goal =
-    answers.priority === 'water'
-      ? 'saving water'
-      : answers.priority === 'soil'
-        ? 'keeping your soil healthy'
-        : answers.priority === 'income'
-          ? 'earning more'
-          : 'a balance of water, soil and income'
-  const unknown = unknownCount(answers)
-  const sequenceText = crops.join(' → ')
-  const headline =
-    unknown >= 3
-      ? `We need more answers to be sure. With what we know, the "${planTitle(best.id)}" plan is a safe start: ${sequenceText}.`
-      : answers.priority && answers.priority !== 'unknown'
-        ? `For ${goal}, the "${planTitle(best.id)}" plan fits your field best: ${sequenceText}.`
-        : `Balancing water, soil and income, the "${planTitle(best.id)}" plan fits your field best: ${sequenceText}.`
-
-  const confidence: Confidence = unknown === 0 ? 'High' : unknown <= 2 ? 'Medium' : 'Low'
-  const confidenceReason =
-    unknown === 0
-      ? 'You answered all 5 questions, and we have 40 years of NASA climate data for your area.'
-      : `${unknown} of 5 answers ${unknown === 1 ? 'was' : 'were'} "I don't know", so the plan relies more on general rules.`
-
-  return {
-    best,
-    headline,
-    steps: [
-      { label: 'This season', text: strategy.steps.thisSeason },
-      { label: 'Next season', text: strategy.steps.nextSeason },
-      { label: 'In 2–3 years', text: ctx.waterShort && strategy.steps.laterIfWaterShort ? strategy.steps.laterIfWaterShort : strategy.steps.later },
-    ],
-    confidence,
-    confidenceReason,
-    plans,
-    current,
-    currentAssumed,
+  // Income cannot be estimated, so "Earn more" points to the market-crops plan with a clear note.
+  if (answers.priority === 'income' && !ctx.rainOnly) {
+    const i = plans.findIndex((p) => p.id === 'economic')
+    plans.unshift(...plans.splice(i, 1))
   }
+  const best = plans[0]
+  return { ctx, best, plans, current, currentIsReference }
+}
+
+export function recommend(answers: FarmerAnswers, climate: ClimateData | null, data: RotationData): Recommendation {
+  const result = core(answers, climate, data)
+  const { ctx, best, plans, current, currentIsReference } = result
+  const unknown = unknownCount(answers)
+  const params = { plan: { plan: best.id }, seq: crops(best.sequence, 'arrow') }
+  const headline: Msg =
+    unknown >= 3
+      ? { key: 'headline.needMore', params }
+      : answers.priority === 'income'
+        ? { key: ctx.rainOnly ? 'headline.incomeRainOnly' : 'headline.income', params }
+        : answers.priority === 'water' || answers.priority === 'soil'
+          ? { key: `headline.${answers.priority}`, params }
+          : { key: 'headline.balance', params }
+
+  const id = best.id
+  const later = id === 'water-saving' && ctx.waterShort ? `steps.${id}.laterShort` : `steps.${id}.later`
+  const basis: Basis[] = ['answers', 'guidance']
+  const steps = [
+    { label: { key: 'step.thisSeason' }, text: { key: `steps.${id}.thisSeason` }, basis },
+    { label: { key: 'step.nextSeason' }, text: { key: `steps.${id}.nextSeason` }, basis },
+    { label: { key: 'step.later' }, text: { key: later }, basis: ctx.warming || ctx.drying ? [...basis, 'nasa' as const] : basis },
+  ]
+
+  const confidence: Confidence = unknown === 0 ? 'high' : unknown <= 2 ? 'medium' : 'low'
+  const confidenceReason: Msg =
+    unknown === 0 ? { key: 'conf.all' } : { key: unknown === 1 ? 'conf.unknownOne' : 'conf.unknownMany', params: { n: { n: unknown } } }
+
+  // Which answers shaped the plan: re-run without each answer and compare.
+  const fingerprint = (r: ReturnType<typeof core>) =>
+    JSON.stringify([r.plans.map((p) => [p.id, p.vsCurrent, p.why, p.limitations]), r.current.id, r.current.sequence])
+  const base = fingerprint(result)
+  const drivers: Driver[] = QUESTION_IDS.map((q) => {
+    if (answers[q] === undefined || answers[q] === 'unknown') return { id: q, effect: 'unanswered' }
+    const alt = core({ ...answers, [q]: 'unknown' }, climate, data)
+    if (alt.best.id !== best.id) return { id: q, effect: 'plan' }
+    return { id: q, effect: fingerprint(alt) !== base ? 'details' : 'none' }
+  })
+
+  return { best, headline, steps, confidence, confidenceReason, plans, current, currentIsReference, drivers }
 }

@@ -1,5 +1,6 @@
 import { animate, useInView, useReducedMotion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
+import { useT } from '@/i18n'
 
 interface CountUpProps {
   value: number
@@ -20,6 +21,7 @@ export function CountUp({ value, decimals = 0, prefix = '', suffix = '', classNa
   const inView = useInView(ref, { once: true, amount: 0.2 })
   const reduced = useReducedMotion()
   const [shown, setShown] = useState(value)
+  const { num } = useT()
 
   useEffect(() => {
     setShown(value)
@@ -39,7 +41,7 @@ export function CountUp({ value, decimals = 0, prefix = '', suffix = '', classNa
   return (
     <span ref={ref} className={className}>
       {prefix}
-      {shown.toFixed(decimals)}
+      {num(shown, decimals)}
       {suffix}
     </span>
   )

@@ -8,16 +8,17 @@ import { Button } from '@/components/ui/Button'
 import { Reveal } from '@/components/ui/Reveal'
 import { useCanRender3D } from '@/hooks/useDeviceCapability'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { useT } from '@/i18n'
 import { cx } from '@/lib'
 
 // three.js is only downloaded on devices that can run it.
 const OrbitScene = lazy(() => import('@/components/earth/OrbitScene'))
 
-const STEPS: Array<{ icon: LucideIcon; title: string; text: string }> = [
-  { icon: MapPin, title: 'Pick your field', text: 'Search your village or tap the map. Drag the pin onto your field.' },
-  { icon: ClipboardList, title: 'Answer 5 questions', text: 'What you grow now, your soil, your water. "I don\'t know" is a fine answer.' },
-  { icon: ChartLine, title: 'See 40 years of NASA climate', text: 'Temperature, rain and snow, and soil wetness around your field since 1986.' },
-  { icon: Sprout, title: 'Get your plan', text: 'The rotation that fits your goal, compared with what you grow now, and 3 steps to start.' },
+const STEPS: Array<{ icon: LucideIcon; n: number }> = [
+  { icon: MapPin, n: 1 },
+  { icon: ClipboardList, n: 2 },
+  { icon: ChartLine, n: 3 },
+  { icon: Sprout, n: 4 },
 ]
 
 /** Headline lines slide up one by one (fast: readable in well under 2 seconds). */
@@ -41,25 +42,26 @@ function Lines({ lines, className }: { lines: ReactNode[]; className?: string })
 }
 
 function HeroCopy({ onHow }: { onHow: () => void }) {
+  const { t } = useT()
   return (
     <>
       <p className="mb-4 inline-flex items-center gap-2 font-display text-sm font-medium uppercase tracking-[0.16em] text-accent-text">
         <Satellite size={16} aria-hidden="true" />
-        NASA climate data · Chuy Valley
+        {t('landing.eyebrow')}
       </p>
       <h1 id="hero-title" className="text-[2.25rem] leading-[1.02] sm:text-5xl lg:text-6xl">
-        <Lines lines={['Climate in the', 'Chuy Valley is', 'changing.']} />
-        <Lines lines={[<span key="k" className="text-accent-text">Know what to plant next.</span>]} />
+        <Lines lines={[t('landing.h1.1'), t('landing.h1.2'), t('landing.h1.3')]} />
+        <Lines lines={[<span key="k" className="text-accent-text">{t('landing.h1.4')}</span>]} />
       </h1>
       <p className="mt-4 max-w-md text-base text-text-muted sm:mt-5 sm:text-lg">
-        Pick your field, answer 5 questions and get a crop rotation plan built on 40 years of NASA climate records. Free, no sign-up.
+        {t('landing.sub')}
       </p>
       <div className="mt-5 flex flex-col gap-2 sm:mt-7 sm:flex-row sm:items-center sm:gap-3">
         <Button to="/field" size="lg" iconRight={<ArrowRight size={22} />} className="w-full sm:w-auto">
-          Check my field
+          {t('landing.cta')}
         </Button>
         <Button variant="ghost" size="lg" onClick={onHow} className="w-full sm:w-auto">
-          How it works
+          {t('landing.how')}
         </Button>
       </div>
     </>
@@ -93,13 +95,14 @@ function StoryPanel({
 }
 
 const CHAPTERS = [
-  { at: 0, label: 'Orbit' },
-  { at: 0.45, label: 'Kyrgyzstan' },
-  { at: 0.8, label: 'Chuy Valley' },
+  { at: 0, label: 'landing.ch.orbit' },
+  { at: 0.45, label: 'landing.ch.kg' },
+  { at: 0.8, label: 'landing.ch.valley' },
 ]
 
 /** Scenes 1–2: orbit → descent → valley, on one sticky 3D canvas. */
 function OrbitStory({ onHow }: { onHow: () => void }) {
+  const { t } = useT()
   const ref = useRef<HTMLElement>(null)
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
   const wide = useMediaQuery('(min-width: 1024px)')
@@ -191,20 +194,20 @@ function OrbitStory({ onHow }: { onHow: () => void }) {
 
           {/* Scene 2: descent */}
           <StoryPanel progress={scrollYProgress} range={[0.3, 0.4, 0.58, 0.68]} className="inset-x-gutter bottom-[12vh] max-w-md lg:bottom-auto lg:top-[30%]">
-            <p className="font-display text-sm font-medium uppercase tracking-[0.16em] text-accent-text">Descending · Kyrgyzstan</p>
-            <h2 className="mt-2 text-3xl sm:text-4xl">Most of Kyrgyzstan is mountains.</h2>
-            <p className="mt-3 text-lg text-text-muted">Flat land that can be farmed is rare and precious. One of the largest farming valleys lies in the north.</p>
+            <p className="font-display text-sm font-medium uppercase tracking-[0.16em] text-accent-text">{t('landing.s2.eyebrow')}</p>
+            <h2 className="mt-2 text-3xl sm:text-4xl">{t('landing.s2.title')}</h2>
+            <p className="mt-3 text-lg text-text-muted">{t('landing.s2.text')}</p>
           </StoryPanel>
 
           <StoryPanel progress={scrollYProgress} range={[0.74, 0.82, 0.95, 1]} stay className="inset-x-gutter bottom-[10vh] max-w-md lg:bottom-auto lg:top-[26%]">
-            <p className="font-display text-sm font-medium uppercase tracking-[0.16em] text-accent-text">Arrived · Chuy Valley</p>
-            <h2 className="mt-2 text-3xl sm:text-4xl">The Chuy Valley.</h2>
+            <p className="font-display text-sm font-medium uppercase tracking-[0.16em] text-accent-text">{t('landing.s3.eyebrow')}</p>
+            <h2 className="mt-2 text-3xl sm:text-4xl">{t('landing.s3.title')}</h2>
             <p className="mt-3 text-lg text-text-muted">
-              Wheat, maize, sugar beet and alfalfa grow here, watered by mountain rivers and canals. NASA POWER holds 40 years of its climate.
+              {t('landing.s3.text')}
             </p>
             <div className="mt-5">
               <Button to="/field" iconRight={<ArrowRight size={20} />}>
-                Check my field
+                {t('landing.cta')}
               </Button>
             </div>
           </StoryPanel>
@@ -217,7 +220,7 @@ function OrbitStory({ onHow }: { onHow: () => void }) {
             <ol className="flex flex-col justify-between gap-3 py-0.5">
               {CHAPTERS.map((c, i) => (
                 <li key={c.label} className={cx('font-display text-sm uppercase tracking-[0.14em] transition-colors duration-base', i === chapter ? 'text-accent-text' : 'text-text-muted')}>
-                  {c.label}
+                  {t(c.label)}
                 </li>
               ))}
             </ol>
@@ -226,7 +229,7 @@ function OrbitStory({ onHow }: { onHow: () => void }) {
 
         <m.p style={{ opacity: cueOpacity }} aria-hidden="true" className="absolute inset-x-0 bottom-4 flex items-center justify-center gap-2 text-sm text-text-muted">
           <ArrowDown size={16} className="animate-bounce" />
-          Scroll to fly down to the valley
+          {t('landing.scroll')}
         </m.p>
       </div>
     </section>
@@ -235,6 +238,7 @@ function OrbitStory({ onHow }: { onHow: () => void }) {
 
 /** Shown instead of the 3D story on weak devices, slow connections or reduced motion. */
 function StaticHero({ onHow }: { onHow: () => void }) {
+  const { t } = useT()
   return (
     <section aria-labelledby="hero-title" className="overflow-hidden">
       <Container className="grid items-center gap-6 pt-8 sm:pt-12 lg:grid-cols-[1.1fr_1fr] lg:gap-12 lg:pt-16">
@@ -247,7 +251,7 @@ function StaticHero({ onHow }: { onHow: () => void }) {
             src="/globe-fallback.svg"
             width={480}
             height={480}
-            alt="Globe centred on Central Asia, with Kyrgyzstan outlined and the Chuy Valley marked."
+            alt={t('landing.globeAlt')}
             fetchPriority="high"
             className="relative h-full w-full"
           />
@@ -259,6 +263,7 @@ function StaticHero({ onHow }: { onHow: () => void }) {
 
 /** Scene 4: the 4 steps. Pinned on large screens, a simple list on phones. */
 function HowItWorks() {
+  const { t } = useT()
   const ref = useRef<HTMLElement>(null)
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
   const [activeStep, setActiveStep] = useState(0)
@@ -272,16 +277,16 @@ function HowItWorks() {
         <Container>
           <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
             <div>
-              <p className="font-display text-sm font-medium uppercase tracking-[0.16em] text-accent-text">How it works</p>
+              <p className="font-display text-sm font-medium uppercase tracking-[0.16em] text-accent-text">{t('how.eyebrow')}</p>
               <h2 id="how-title" className="mt-2 text-3xl sm:text-5xl">
-                Four steps.
+                {t('how.title1')}
                 <br />
-                About two minutes.
+                {t('how.title2')}
               </h2>
-              <p className="mt-4 max-w-sm text-lg text-text-muted">One task per screen, big buttons, plain words. Works on a phone in the field.</p>
+              <p className="mt-4 max-w-sm text-lg text-text-muted">{t('how.text')}</p>
               <div className="mt-6">
                 <Button to="/field" iconRight={<ArrowRight size={20} />}>
-                  Start with my field
+                  {t('how.cta')}
                 </Button>
               </div>
             </div>
@@ -290,7 +295,7 @@ function HowItWorks() {
                 const on = !pinned || i <= activeStep
                 return (
                   <li
-                    key={step.title}
+                    key={step.n}
                     className={cx(
                       'flex gap-4 rounded-card border p-5 transition-[opacity,border-color,background-color,transform] duration-slow ease-token sm:p-6',
                       on ? 'border-border bg-surface' : 'border-border/40 bg-transparent text-text-muted',
@@ -303,10 +308,10 @@ function HowItWorks() {
                     <div>
                       <h3 className="flex items-center gap-2 text-xl">
                         <step.icon size={20} aria-hidden="true" className="text-accent-text" />
-                        <span className="sr-only">Step {i + 1}: </span>
-                        {step.title}
+                        <span className="sr-only">{t('how.step', { n: String(i + 1) })}: </span>
+                        {t(`how.${step.n}.title`)}
                       </h3>
-                      <p className="mt-1 text-text-muted">{step.text}</p>
+                      <p className="mt-1 text-text-muted">{t(`how.${step.n}.text`)}</p>
                     </div>
                   </li>
                 )
@@ -321,22 +326,22 @@ function HowItWorks() {
 
 /** Scene 5: where the data comes from, how to read labels, final call to action. */
 function Trust() {
+  const { t } = useT()
   return (
     <section aria-labelledby="trust-title" className="pt-section">
       <Container>
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-16">
           <Reveal>
-            <p className="font-display text-sm font-medium uppercase tracking-[0.16em] text-accent-text">Honest by design</p>
+            <p className="font-display text-sm font-medium uppercase tracking-[0.16em] text-accent-text">{t('trust.eyebrow')}</p>
             <h2 id="trust-title" className="mt-2 text-3xl sm:text-4xl">
-              Every number says where it comes from.
+              {t('trust.title')}
             </h2>
             <p className="mt-4 text-lg text-text-muted">
-              All climate numbers come from <strong className="text-text">NASA POWER</strong>: temperature, rain and snow, and root zone soil
-              wetness, 1986–2025. Crop advice is general rotation guidance, clearly labelled. We never invent yields or prices.
+              {t('trust.text')}
             </p>
             <p className="mt-4">
               <a href="/about" className="inline-flex min-h-tap items-center gap-2 font-bold text-heading underline underline-offset-4">
-                Sources, limits and glossary
+                {t('trust.link')}
                 <ArrowRight size={18} aria-hidden="true" />
               </a>
             </p>
@@ -345,17 +350,17 @@ function Trust() {
             <dl className="divide-y divide-border rounded-card border border-border bg-surface">
               {(
                 [
-                  ['historical', 'Measured or modelled by NASA for your area.'],
-                  ['answers', 'What you told us about your field.'],
-                  ['guidance', 'General crop rotation knowledge, not from NASA data.'],
-                  ['hypothetical', 'A "what if" picture. Not a forecast.'],
+                  ['historical', 'trust.historical'],
+                  ['answers', 'trust.answers'],
+                  ['guidance', 'trust.guidance'],
+                  ['hypothetical', 'trust.hypothetical'],
                 ] as const
               ).map(([type, text]) => (
                 <div key={type} className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:gap-4">
                   <dt className="sm:w-56">
                     <Badge type={type} />
                   </dt>
-                  <dd className="text-text-muted">{text}</dd>
+                  <dd className="text-text-muted">{t(text)}</dd>
                 </div>
               ))}
             </dl>
@@ -365,11 +370,11 @@ function Trust() {
         <Reveal>
           <div className="gradient-border mt-section flex flex-col items-start gap-5 rounded-card bg-surface p-6 sm:p-10 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h2 className="text-2xl sm:text-4xl">Ready to check your field?</h2>
-              <p className="mt-2 text-lg text-text-muted">Works on a phone and on slow internet. Takes about 2 minutes.</p>
+              <h2 className="text-2xl sm:text-4xl">{t('final.title')}</h2>
+              <p className="mt-2 text-lg text-text-muted">{t('final.text')}</p>
             </div>
             <Button to="/field" size="lg" iconRight={<ArrowRight size={22} />} className="w-full sm:w-auto">
-              Check my field
+              {t('landing.cta')}
             </Button>
           </div>
         </Reveal>

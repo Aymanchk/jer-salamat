@@ -6,6 +6,7 @@ import { Footer } from '@/components/layout/Footer'
 import { Header } from '@/components/layout/Header'
 import { LoadingSkeleton } from '@/components/ui/LoadingSkeleton'
 import LandingPage from '@/pages/LandingPage'
+import { LangProvider, useT } from '@/i18n'
 import { SessionProvider } from '@/state/session'
 import { ThemeProvider } from '@/state/theme'
 
@@ -26,6 +27,7 @@ const FULL_SCREEN = ['/field', '/questions']
 
 function Shell() {
   const location = useLocation()
+  const { t } = useT()
   const fullScreen = FULL_SCREEN.includes(location.pathname)
 
   const showStepper = FLOW_ROUTES.includes(location.pathname)
@@ -54,7 +56,7 @@ function Shell() {
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-popover focus:rounded-control focus:bg-accent focus:px-4 focus:py-3 focus:font-bold focus:text-on-accent"
       >
-        Skip to content
+        {t('app.skip')}
       </a>
       <Header />
       {showStepper && <FlowStepper />}
@@ -67,7 +69,7 @@ function Shell() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.18, ease: [0.2, 0.7, 0.2, 1] }}
           >
-            <Suspense fallback={<LoadingSkeleton variant="page" label="Loading page" />}>
+            <Suspense fallback={<LoadingSkeleton variant="page" label={t('app.loadingPage')} />}>
               <Routes location={location}>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/field" element={<FieldPage />} />
@@ -87,6 +89,7 @@ function Shell() {
 export default function App() {
   return (
     <ThemeProvider>
+      <LangProvider>
       <SessionProvider>
         <LazyMotion features={domAnimation} strict>
           <MotionConfig reducedMotion="user">
@@ -96,6 +99,7 @@ export default function App() {
           </MotionConfig>
         </LazyMotion>
       </SessionProvider>
+      </LangProvider>
     </ThemeProvider>
   )
 }

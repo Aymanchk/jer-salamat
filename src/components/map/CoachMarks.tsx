@@ -2,13 +2,14 @@ import { ArrowRight, Hand, Move, Search } from 'lucide-react'
 import { m } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/Button'
+import { useT } from '@/i18n'
 
 const STORAGE_KEY = 'js-coach-field'
 
 const TIPS = [
-  { icon: Search, title: 'Find your field', text: 'Search your village, or tap the map where your field is.' },
-  { icon: Move, title: 'Move the pin', text: 'Drag the pin until it sits on your field.' },
-  { icon: ArrowRight, title: 'Press Continue', text: 'Then answer 5 short questions about the field.' },
+  { icon: Search, n: 1 },
+  { icon: Move, n: 2 },
+  { icon: ArrowRight, n: 3 },
 ]
 
 function seen(): boolean {
@@ -29,6 +30,7 @@ function remember() {
 
 /** First-visit tips for the field page: 3 short steps with "Got it" and "Skip". */
 export function CoachMarks() {
+  const { t } = useT()
   const [open, setOpen] = useState(() => !seen())
   const [step, setStep] = useState(0)
   const primaryRef = useRef<HTMLButtonElement>(null)
@@ -64,14 +66,14 @@ export function CoachMarks() {
           </span>
           <div>
             <p className="text-sm font-bold text-text-muted">
-              Tip {step + 1} of {TIPS.length}
+              {t('coach.tip', { n: String(step + 1), total: String(TIPS.length) })}
             </p>
             <h2 id="coach-title" className="text-xl">
-              {tip.title}
+              {t(`coach.${tip.n}.title`)}
             </h2>
           </div>
         </div>
-        <p className="mt-3 text-lg text-text">{tip.text}</p>
+        <p className="mt-3 text-lg text-text">{t(`coach.${tip.n}.text`)}</p>
         <div className="mt-4 flex items-center gap-1.5" aria-hidden="true">
           {TIPS.map((_, i) => (
             <span key={i} className={i === step ? 'h-2 w-6 rounded-pill bg-accent' : 'h-2 w-2 rounded-pill bg-border-strong'} />
@@ -79,10 +81,10 @@ export function CoachMarks() {
         </div>
         <div className="mt-5 flex gap-3">
           <Button variant="ghost" onClick={close}>
-            Skip
+            {t('coach.skip')}
           </Button>
           <Button ref={primaryRef} className="flex-1" onClick={() => (last ? close() : setStep(step + 1))} iconRight={last ? <Hand size={18} /> : undefined}>
-            {last ? 'Got it' : 'Next tip'}
+            {last ? t('coach.done') : t('coach.next')}
           </Button>
         </div>
       </m.div>

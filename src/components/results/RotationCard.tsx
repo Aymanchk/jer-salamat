@@ -1,12 +1,13 @@
 import {
   ArrowDown,
   ArrowUp,
-  Banknote,
+  BookMarked,
   CircleHelp,
   Droplets,
   History,
   Lightbulb,
   Minus,
+  ShoppingBasket,
   Sprout,
   Star,
   ThumbsUp,
@@ -15,53 +16,53 @@ import {
 } from 'lucide-react'
 import { AccordionItem } from '@/components/ui/Accordion'
 import { Badge } from '@/components/ui/Badge'
-import { CropIcon, cropLabel } from '@/components/ui/CropIcon'
-import type { Comparison, Level, PlanId, PlanResult } from '@/core'
+import { CropIcon } from '@/components/ui/CropIcon'
+import { InfoTooltip } from '@/components/ui/InfoTooltip'
+import { Term } from '@/components/ui/Term'
+import type { Comparison, Msg, PlanId, PlanResult } from '@/core'
 import { useTilt } from '@/hooks/useTilt'
+import { useT } from '@/i18n'
 import { cx } from '@/lib'
 
-interface PlanMeta {
-  title: string
-  goal: string
-  icon: LucideIcon
+export const PLAN_ICONS: Record<PlanId, LucideIcon> = {
+  'water-saving': Droplets,
+  'soil-health': Sprout,
+  economic: ShoppingBasket,
+  current: History,
+  reference: BookMarked,
 }
 
-export const PLANS: Record<PlanId, PlanMeta> = {
-  'water-saving': { title: 'Water saving', goal: 'Use less irrigation water in dry summers.', icon: Droplets },
-  'soil-health': { title: 'Soil health', goal: 'Make the soil richer for the years ahead.', icon: Sprout },
-  economic: { title: 'Higher income', goal: 'Aim for more money from the field.', icon: Banknote },
-  current: { title: 'Your current rotation', goal: 'What you grow now, for comparison.', icon: History },
-}
-
-const DIMENSIONS: Array<{ key: 'water' | 'soil' | 'economy'; label: string; icon: LucideIcon; better: string; worse: string }> = [
-  { key: 'water', label: 'Water', icon: Droplets, better: 'needs less water', worse: 'needs more water' },
-  { key: 'soil', label: 'Soil', icon: Sprout, better: 'better for soil', worse: 'harder on soil' },
-  { key: 'economy', label: 'Income', icon: Banknote, better: 'more income', worse: 'less income' },
-]
-
-/** Words for the level of each dimension. Water is phrased as "water saving". */
-const LEVEL_WORD: Record<'water' | 'soil' | 'economy', Record<Level, string>> = {
-  water: { low: 'Needs a lot', medium: 'Medium need', high: 'Needs little' },
-  soil: { low: 'Wears it out', medium: 'Neutral', high: 'Builds it up' },
-  economy: { low: 'Low', medium: 'Medium', high: 'High' },
-}
-
-function CompareChip({ value, better, worse }: { value: Comparison; better: string; worse: string }) {
+function CompareChip({ value, dim }: { value: Comparison; dim: 'water' | 'soil' }) {
+  const { t } = useT()
   const Icon = value === 'better' ? ArrowUp : value === 'worse' ? ArrowDown : Minus
-  const text = value === 'better' ? `Better: ${better}` : value === 'worse' ? `Worse: ${worse}` : 'Same as now'
+  const detail = value === 'better' || value === 'worse' ? t(`cmp.${dim}.${value}`) : ''
   return (
     <span
       className={cx(
-        'inline-flex items-center gap-1 rounded-pill border px-2 py-0.5 text-sm font-bold whitespace-nowrap',
+        'inline-flex items-center gap-1 whitespace-nowrap rounded-pill border px-2 py-0.5 text-sm font-bold',
         value === 'better' && 'border-better text-better',
         value === 'worse' && 'border-worse text-worse',
-        value === 'same' && 'border-border-strong text-text-muted',
+        (value === 'same' || value === 'unknown') && 'border-border-strong text-text-muted',
       )}
     >
-      <Icon size={14} aria-hidden="true" strokeWidth={2.75} />
-      {value === 'better' ? 'Better' : value === 'worse' ? 'Worse' : 'Same'}
-      <span className="sr-only"> than your current rotation. {text}</span>
+      {value !== 'unknown' && <Icon size={14} aria-hidden="true" strokeWidth={2.75} />}
+      {t(`cmp.${value}`)}
+      <span className="sr-only">
+        {' '}
+        {t('cmp.sr')} {detail}
+      </span>
     </span>
+  )
+}
+
+function MsgList({ items }: { items: Msg[] }) {
+  const { tm } = useT()
+  return (
+    <ul className="list-disc space-y-1 pl-4">
+      {items.map((m) => (
+        <li key={m.key + JSON.stringify(m.params ?? '')}>{tm(m)}</li>
+      ))}
+    </ul>
   )
 }
 
@@ -69,42 +70,40 @@ interface RotationCardProps {
   plan: PlanResult
   /** True for the best fit for this farmer. */
   best?: boolean
-  /** True when the current rotation was assumed (farmer chose "I don't know"). */
-  assumed?: boolean
+  /** The comparison rotation is the regional reference (farmer said "I don't know"). */
+  comparedToReference?: boolean
   className?: string
 }
 
-export function RotationCard({ plan, best = false, assumed = false, className }: RotationCardProps) {
-  const meta = PLANS[plan.id]
-  const Icon = meta.icon
-  const isCurrent = plan.id === 'current'
+export function RotationCard({ plan, best = false, comparedToReference = false, className }: RotationCardProps) {
+  const { t } = useT()
+  const Icon = PLAN_ICONS[plan.id]
+  const isBaseline = plan.id === 'current' || plan.id === 'reference'
   const tilt = useTilt()
+  const title = t(`plan.${plan.id}.title`)
+  const long = plan.sequence.length > 4
+  const vsLabel = isBaseline ? t('plan.howItDoes') : comparedToReference ? t('plan.vsReference') : t('plan.vsCurrent')
 
   return (
     <article
-      aria-label={`${meta.title} plan`}
+      aria-label={title}
       {...tilt}
       className={cx(
         'lift flex h-full flex-col overflow-hidden rounded-card border bg-surface shadow-card will-change-transform',
-        best ? 'gradient-border border-transparent' : isCurrent ? 'border-dashed border-border-strong' : 'border-border',
+        best ? 'gradient-border border-transparent' : isBaseline ? 'border-dashed border-border-strong' : 'border-border',
         className,
       )}
     >
-      <header className={cx('flex items-start gap-3 p-4 sm:p-5', isCurrent ? 'bg-surface-muted' : 'bg-primary')}>
+      <header className={cx('flex items-start gap-3 p-4 sm:p-5', isBaseline ? 'bg-surface-muted' : 'bg-primary')}>
         <span
           aria-hidden="true"
-          className={cx(
-            'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-pill',
-            best ? 'neon-chip text-on-accent' : 'bg-primary-strong text-on-primary',
-          )}
+          className={cx('inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-pill', best ? 'neon-chip text-on-accent' : 'bg-primary-strong text-on-primary')}
         >
           <Icon size={22} />
         </span>
         <div className="min-w-0">
-          <h3 className={cx('text-xl', !isCurrent && 'text-on-primary')}>{meta.title}</h3>
-          <p className={isCurrent ? 'text-text-muted' : 'text-on-primary-muted'}>
-            {isCurrent && assumed ? 'You did not say, so we assume a typical Chuy rotation.' : meta.goal}
-          </p>
+          <h3 className={cx('text-xl', !isBaseline && 'text-on-primary')}>{title}</h3>
+          <p className={isBaseline ? 'text-text-muted' : 'text-on-primary-muted'}>{t(`plan.${plan.id}.goal`)}</p>
         </div>
       </header>
 
@@ -113,80 +112,97 @@ export function RotationCard({ plan, best = false, assumed = false, className }:
           {best && (
             <span className="neon-chip inline-flex items-center gap-1.5 rounded-pill px-2.5 py-1 text-sm font-bold leading-none text-on-accent">
               <Star size={14} aria-hidden="true" />
-              Best fit for you
+              {t('plan.bestFit')}
             </span>
           )}
-          {isCurrent ? <Badge type="answers" /> : <Badge type="guidance" />}
-          {plan.preliminary && !isCurrent && <Badge type="placeholder">Preliminary</Badge>}
+          {plan.id === 'current' && <Badge type="answers" />}
+          {plan.id === 'reference' && <Badge type="reference">{t('plan.reference.badge')}</Badge>}
+          {!isBaseline && <Badge type="guidance" />}
         </div>
 
-        <section aria-label="Crop sequence">
-          <p className="mb-3 text-sm font-bold text-text-muted">{isCurrent ? 'What you grow now' : 'Crop order, year by year'}</p>
-          <ol className="relative grid grid-cols-4 gap-1">
-            <span aria-hidden="true" className="absolute inset-x-[12.5%] top-[2.6rem] h-0.5 bg-border" />
+        <section aria-label={t('plan.cropOrder')}>
+          <p className="mb-3 text-sm font-bold text-text-muted">
+            {plan.id === 'current' ? t('plan.whatYouGrow') : plan.id === 'reference' ? t('plan.referenceOrder') : t('plan.cropOrder')}
+          </p>
+          <ol className="relative grid gap-1" style={{ gridTemplateColumns: `repeat(${plan.sequence.length}, minmax(0, 1fr))` }}>
+            <span
+              aria-hidden="true"
+              className={cx('absolute h-0.5 bg-border', long ? 'top-[2.35rem]' : 'top-[2.6rem]')}
+              style={{ left: `${50 / plan.sequence.length}%`, right: `${50 / plan.sequence.length}%` }}
+            />
             {plan.sequence.map((crop, i) => (
-              <li key={i} className="relative flex flex-col items-center gap-1.5" aria-label={`Year ${i + 1}: ${cropLabel(crop)}`}>
+              <li
+                key={i}
+                className="relative flex min-w-0 flex-col items-center gap-1.5"
+                aria-label={`${t('plan.year', { n: String(i + 1) })}: ${t(`crop.${crop}`)}`}
+              >
                 <span className="whitespace-nowrap text-sm text-text-muted" aria-hidden="true">
-                  Year {i + 1}
+                  {long ? i + 1 : t('plan.year', { n: String(i + 1) })}
                 </span>
-                <CropIcon crop={crop} />
+                <CropIcon crop={crop} size={long ? 'sm' : 'md'} />
               </li>
             ))}
           </ol>
         </section>
 
-        <section aria-label={isCurrent ? 'How it does' : 'Compared with your current rotation'}>
-          <p className="mb-2 text-sm font-bold text-text-muted">{isCurrent ? 'How it does' : 'Vs your current rotation'}</p>
+        <section aria-label={vsLabel}>
+          <p className="mb-2 text-sm font-bold text-text-muted">{vsLabel}</p>
           <dl className="divide-y divide-border rounded-control border border-border">
-            {DIMENSIONS.map((d) => (
-              <div key={d.key} className="flex items-center gap-3 px-3 py-2.5">
-                <d.icon size={18} aria-hidden="true" className="shrink-0 text-accent-text" />
-                <dt className="min-w-0 flex-1">
-                  <span className="block font-bold text-text">{d.label}</span>
-                  <span className="block text-sm text-text-muted">{LEVEL_WORD[d.key][plan.levels[d.key]]}</span>
-                </dt>
-                <dd>
-                  {plan.vsCurrent ? (
-                    <CompareChip value={plan.vsCurrent[d.key]} better={d.better} worse={d.worse} />
-                  ) : (
-                    <span className="text-sm text-text-muted">Baseline</span>
-                  )}
-                </dd>
-              </div>
-            ))}
+            <div className="flex items-center gap-3 px-3 py-2.5">
+              <Droplets size={18} aria-hidden="true" className="shrink-0 text-accent-text" />
+              <dt className="min-w-0 flex-1">
+                <span className="block font-bold text-text">
+                  <Term id="waterNeed">{t('plan.dim.water')}</Term>
+                </span>
+                <span className="block text-sm text-text-muted">
+                  {plan.water ? t('plan.water.range', { min: String(plan.water.min), max: String(plan.water.max) }) : t('plan.water.none')}
+                </span>
+              </dt>
+              <dd>
+                {plan.vsCurrent ? <CompareChip value={plan.vsCurrent.water} dim="water" /> : <span className="text-sm text-text-muted">{t('plan.baseline')}</span>}
+              </dd>
+            </div>
+            <div className="flex items-center gap-3 px-3 py-2.5">
+              <Sprout size={18} aria-hidden="true" className="shrink-0 text-accent-text" />
+              <dt className="min-w-0 flex-1">
+                <span className="block font-bold text-text">{t('plan.dim.soil')}</span>
+                <span className="block text-sm text-text-muted">{t(`plan.soil.${plan.soilLevel}`)}</span>
+              </dt>
+              <dd>
+                {plan.vsCurrent ? <CompareChip value={plan.vsCurrent.soil} dim="soil" /> : <span className="text-sm text-text-muted">{t('plan.baseline')}</span>}
+              </dd>
+            </div>
+            <div className="flex items-center gap-3 px-3 py-2.5">
+              <ShoppingBasket size={18} aria-hidden="true" className="shrink-0 text-text-muted" />
+              <dt className="min-w-0 flex-1">
+                <span className="block font-bold text-text">{t('plan.dim.income')}</span>
+                <span className="block text-sm text-text-muted">{t('plan.income.none')}</span>
+              </dt>
+              <dd>
+                <InfoTooltip label={t('plan.income.none')} align="right">
+                  {t('plan.income.info')}
+                </InfoTooltip>
+              </dd>
+            </div>
           </dl>
         </section>
 
         <div className="mt-auto border-t border-border">
-          <AccordionItem title={isCurrent ? 'About it' : 'Why this plan'} icon={Lightbulb} defaultOpen={best}>
-            <ul className="list-disc space-y-1 pl-4">
-              {plan.why.map((t) => (
-                <li key={t}>{t}</li>
-              ))}
-            </ul>
+          <AccordionItem title={isBaseline ? t('acc.about') : t('acc.why')} icon={Lightbulb} defaultOpen={best}>
+            <MsgList items={plan.why} />
           </AccordionItem>
-          <AccordionItem title="Benefits" icon={ThumbsUp}>
-            <ul className="list-disc space-y-1 pl-4">
-              {plan.benefits.map((t) => (
-                <li key={t}>{t}</li>
-              ))}
-            </ul>
-          </AccordionItem>
-          {plan.limitations.length > 0 && (
-            <AccordionItem title="Risks and limits" icon={TriangleAlert}>
-              <ul className="list-disc space-y-1 pl-4">
-                {plan.limitations.map((t) => (
-                  <li key={t}>{t}</li>
-                ))}
-              </ul>
+          {plan.benefits.length > 0 && (
+            <AccordionItem title={t('acc.benefits')} icon={ThumbsUp}>
+              <MsgList items={plan.benefits} />
             </AccordionItem>
           )}
-          <AccordionItem title="What we don't know" icon={CircleHelp}>
-            <ul className="list-disc space-y-1 pl-4">
-              {plan.missingInfo.map((t) => (
-                <li key={t}>{t}</li>
-              ))}
-            </ul>
+          {plan.limitations.length > 0 && (
+            <AccordionItem title={t('acc.limits')} icon={TriangleAlert}>
+              <MsgList items={plan.limitations} />
+            </AccordionItem>
+          )}
+          <AccordionItem title={t('acc.missing')} icon={CircleHelp}>
+            <MsgList items={plan.missingInfo} />
           </AccordionItem>
         </div>
       </div>

@@ -1,0 +1,65 @@
+{
+  "_policy": "NASA is the only source of environmental numbers. FAO and Kyrgyz sources appear only as clearly labelled reference or context, never as values computed from NASA data. The recommendation engine (src/core) reads these files but does not change them.",
+  "sources": [
+    {
+      "id": "nasa-power",
+      "kind": "nasa",
+      "name": "NASA POWER, monthly point data (community AG)",
+      "publisher": "NASA Langley Research Center",
+      "url": "https://power.larc.nasa.gov/",
+      "year": "1986–2025 (accessed 2026)",
+      "unit": "T2M °C; PRECTOTCORR mm/day (summed to mm per year); GWETROOT 0–1",
+      "note": "Regional grid of about 0.5° × 0.625° (roughly 50 km). Modelled and satellite-based, not a measurement of one field. Neighbouring fields share the same values."
+    },
+    {
+      "id": "kg-esmf-2024",
+      "kind": "reference",
+      "name": "Environmental and Social Management Framework (ESMF), WSSUAP project — crops of Sokuluk District",
+      "publisher": "Government of the Kyrgyz Republic (project implementation unit)",
+      "url": "https://tunuksuu.kg/wp-content/uploads/2024/11/KG_ESMF_WSSUAP_PIU_SIDDWSWD_RUS1.pdf",
+      "year": "October 2024 (based on 2021 statistics)",
+      "unit": "List of crops (no areas used here)",
+      "note": "Crops grown in Sokuluk District: wheat, barley, grain maize, sugar beet, potatoes, vegetables, forage crops, small areas of grain legumes and oilseeds. Used for the answer options and crop icons. Also see economist.kg, 6 Feb 2026: https://economist.kg/agriculture/2026/02/06/v-sokulukie-k-viesiennim-rabotam-podghotovili-38-tysiach-gha-torobaiev-provieril/"
+    },
+    {
+      "id": "volkov-denisov",
+      "kind": "reference",
+      "name": "Volkov & Denisov, Land Management in the Kyrgyz Republic, chapter 21",
+      "publisher": "Textbook (taek.edu.kg)",
+      "url": "https://taek.edu.kg/wp-content/uploads/2025/01/Землеустройство-КР-Волков.pdf",
+      "year": "published 2025 upload",
+      "unit": "Crop sequence (6 fields)",
+      "note": "Six-field rotation recommended for irrigated land in the Chuy, Kemin and Talas valleys: cereals with perennial grasses → perennial grasses → perennial grasses → winter cereals → sugar beet or maize → winter or spring cereals. A published recommendation, not any farmer's actual rotation."
+    },
+    {
+      "id": "fao-water",
+      "kind": "reference",
+      "name": "FAO Irrigation Water Management, Training manual 3, chapter 2: crop water needs",
+      "publisher": "FAO",
+      "url": "https://www.fao.org/4/s2022e/s2022e02.htm",
+      "year": "1986",
+      "unit": "mm of water per total growing period",
+      "note": "General reference ranges, not Sokuluk measurements and not irrigation requirements (irrigation is explained at https://www.fao.org/4/s2022e/s2022e04.htm). Used only to compare crops with each other."
+    },
+    {
+      "id": "fao-rotation",
+      "kind": "reference",
+      "name": "FAO Conservation Agriculture: species diversification; FAO soil biology",
+      "publisher": "FAO",
+      "url": "https://www.fao.org/conservation-agriculture/in-practice/species-diversification/en/",
+      "year": "accessed 2026",
+      "unit": "Qualitative",
+      "note": "Rotation can reduce crop-specific pests and diseases, support soil biodiversity, use different root depths, cycle nutrients, and legumes fix nitrogen. Benefits are possible, not guaranteed. See also https://www.fao.org/4/y5146e/y5146e0a.htm"
+    },
+    {
+      "id": "kg-stat",
+      "kind": "future",
+      "name": "National Statistical Committee of the Kyrgyz Republic — agriculture",
+      "publisher": "stat.gov.kg",
+      "url": "https://www.stat.gov.kg/ru/statistics/selskoe-hozyajstvo/",
+      "year": "—",
+      "unit": "Yields, prices (not used yet)",
+      "note": "Possible future source for verified yields and prices. Until then, income is not estimated."
+    }
+  ]
+}

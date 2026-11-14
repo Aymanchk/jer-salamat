@@ -26,6 +26,7 @@ export type CurrentRotationId =
   | 'wheat-maize'
   | 'beet-wheat-maize'
   | 'alfalfa-wheat'
+  | 'potato-wheat'
   | 'vegetables-wheat'
 
 export type SoilType = 'light' | 'medium' | 'heavy' | 'stony'
@@ -85,12 +86,27 @@ export interface ClimateDataProvider {
 export type CropId =
   | 'wheat'
   | 'barley'
+  | 'cereal-grass'
   | 'maize'
   | 'sugar-beet'
+  | 'potato'
+  | 'vegetables'
   | 'alfalfa'
   | 'beans'
-  | 'vegetables'
+  | 'oilseeds'
   | 'fallow'
+
+/**
+ * A sentence the UI translates. The engine never returns finished text, so
+ * every plan can be shown in English or Russian.
+ * Param values: plain text, a number with formatting hints, or a list of
+ * crop ids (shown as crop names).
+ */
+export type MsgParam = string | { n: number; d?: number; sign?: boolean } | { crops: CropId[]; sep?: 'arrow' | 'and' } | { plan: string }
+export interface Msg {
+  key: string
+  params?: Record<string, MsgParam>
+}
 
 export type StrategyId = 'water-saving' | 'soil-health' | 'economic'
 
@@ -135,5 +151,6 @@ export type DataProvenance =
   | 'answers' // typed in by the farmer
   | 'estimate' // computed by this app
   | 'guidance' // general crop-rotation knowledge, not from NASA data
+  | 'reference' // FAO or published reference, shown as context only
   | 'hypothetical' // "what if" scenario, not a forecast
   | 'placeholder' // design placeholder, not real

@@ -1,243 +1,93 @@
 {
-  "_readme": "Editable rotation data. Every value is PRELIMINARY until teammate Nurlan replaces it with a sourced value. When you add a real value, put the citation in its 'source' field and set 'preliminary' to false. Levels: waterNeed and income use low | medium | high; soilEffect uses depletes | neutral | builds.",
+  "_readme": "Editable crop and rotation data. Every value names its source id from sources.json. waterMm is the FAO general reference range in mm per growing period (not a Sokuluk measurement, not an irrigation requirement); null means no FAO range was provided. soilEffect is general rotation guidance (FAO), not calculated from NASA data. There is no income data: income is never estimated.",
   "crops": {
     "wheat": {
-      "label": "Winter wheat",
-      "waterNeed": {
-        "value": "low",
-        "source": "Team estimate: winter wheat uses snow-melt and spring rain, little summer irrigation",
-        "preliminary": true
-      },
-      "soilEffect": {
-        "value": "neutral",
-        "source": "Team estimate",
-        "preliminary": true
-      },
-      "income": {
-        "value": "low",
-        "source": "Team estimate",
-        "preliminary": true
-      }
+      "waterMm": [450, 650],
+      "waterSource": "fao-water",
+      "soilEffect": { "value": "neutral", "source": "fao-rotation" }
     },
     "barley": {
-      "label": "Barley",
-      "waterNeed": {
-        "value": "low",
-        "source": "Team estimate",
-        "preliminary": true
-      },
-      "soilEffect": {
-        "value": "neutral",
-        "source": "Team estimate",
-        "preliminary": true
-      },
-      "income": {
-        "value": "low",
-        "source": "Team estimate",
-        "preliminary": true
-      }
+      "waterMm": [450, 650],
+      "waterSource": "fao-water",
+      "soilEffect": { "value": "neutral", "source": "fao-rotation" }
+    },
+    "cereal-grass": {
+      "waterMm": [450, 650],
+      "waterSource": "fao-water",
+      "waterNote": "Range for wheat/barley; the undersown grasses are not counted.",
+      "soilEffect": { "value": "builds", "source": "fao-rotation" }
     },
     "maize": {
-      "label": "Maize (corn)",
-      "waterNeed": {
-        "value": "high",
-        "source": "Team estimate: summer crop, needs irrigation in July-August",
-        "preliminary": true
-      },
-      "soilEffect": {
-        "value": "depletes",
-        "source": "Team estimate: heavy nitrogen user",
-        "preliminary": true
-      },
-      "income": {
-        "value": "medium",
-        "source": "Team estimate",
-        "preliminary": true
-      }
+      "waterMm": [500, 800],
+      "waterSource": "fao-water",
+      "soilEffect": { "value": "depletes", "source": "fao-rotation" }
     },
     "sugar-beet": {
-      "label": "Sugar beet",
-      "waterNeed": {
-        "value": "high",
-        "source": "Team estimate",
-        "preliminary": true
-      },
-      "soilEffect": {
-        "value": "depletes",
-        "source": "Team estimate",
-        "preliminary": true
-      },
-      "income": {
-        "value": "high",
-        "source": "Team estimate",
-        "preliminary": true
-      }
+      "waterMm": [550, 750],
+      "waterSource": "fao-water",
+      "soilEffect": { "value": "depletes", "source": "fao-rotation" }
+    },
+    "potato": {
+      "waterMm": [500, 700],
+      "waterSource": "fao-water",
+      "soilEffect": { "value": "depletes", "source": "fao-rotation" }
+    },
+    "vegetables": {
+      "waterMm": null,
+      "waterSource": "fao-water",
+      "waterNote": "No single FAO range for mixed vegetables.",
+      "soilEffect": { "value": "depletes", "source": "fao-rotation" }
     },
     "alfalfa": {
-      "label": "Alfalfa",
-      "waterNeed": {
-        "value": "high",
-        "source": "Team estimate: long season, deep roots",
-        "preliminary": true
-      },
-      "soilEffect": {
-        "value": "builds",
-        "source": "Team estimate: legume, fixes nitrogen",
-        "preliminary": true
-      },
-      "income": {
-        "value": "medium",
-        "source": "Team estimate: livestock feed market",
-        "preliminary": true
-      },
+      "waterMm": [800, 1600],
+      "waterSource": "fao-water",
+      "soilEffect": { "value": "builds", "source": "fao-rotation" },
+      "legume": true,
       "perennial": true
     },
     "beans": {
-      "label": "Beans",
-      "waterNeed": {
-        "value": "medium",
-        "source": "Team estimate",
-        "preliminary": true
-      },
-      "soilEffect": {
-        "value": "builds",
-        "source": "Team estimate: legume, fixes nitrogen",
-        "preliminary": true
-      },
-      "income": {
-        "value": "medium",
-        "source": "Team estimate",
-        "preliminary": true
-      }
+      "waterMm": [350, 500],
+      "waterSource": "fao-water",
+      "waterNote": "FAO range for peas, used for grain legumes.",
+      "soilEffect": { "value": "builds", "source": "fao-rotation" },
+      "legume": true
     },
-    "vegetables": {
-      "label": "Potato or vegetables",
-      "waterNeed": {
-        "value": "high",
-        "source": "Team estimate",
-        "preliminary": true
-      },
-      "soilEffect": {
-        "value": "depletes",
-        "source": "Team estimate",
-        "preliminary": true
-      },
-      "income": {
-        "value": "high",
-        "source": "Team estimate",
-        "preliminary": true
-      }
+    "oilseeds": {
+      "waterMm": null,
+      "waterSource": "fao-water",
+      "soilEffect": { "value": "neutral", "source": "fao-rotation" }
     },
     "fallow": {
-      "label": "Rest (fallow)",
-      "waterNeed": {
-        "value": "low",
-        "source": "Team estimate",
-        "preliminary": true
-      },
-      "soilEffect": {
-        "value": "neutral",
-        "source": "Team estimate",
-        "preliminary": true
-      },
-      "income": {
-        "value": "low",
-        "source": "No harvest in that season",
-        "preliminary": true
-      }
+      "waterMm": null,
+      "waterSource": "fao-water",
+      "soilEffect": { "value": "neutral", "source": "fao-rotation" }
     }
   },
   "strategies": [
     {
       "id": "water-saving",
-      "sequence": [
-        "wheat",
-        "beans",
-        "barley",
-        "wheat"
-      ],
-      "steps": {
-        "thisSeason": "Sow winter wheat this autumn. It grows on snow-melt and spring rain, so it needs little canal water in summer.",
-        "nextSeason": "After the wheat harvest, plant beans. They need less water than maize and add nitrogen to the soil.",
-        "later": "Then barley and wheat again. Keep thirsty crops like maize and sugar beet for fields with a reliable water turn.",
-        "laterIfWaterShort": "Then barley and wheat again. Keep the thirstiest crops off this field while summer water is short."
-      }
+      "sequence": ["wheat", "beans", "barley", "wheat"]
     },
     {
       "id": "soil-health",
-      "sequence": [
-        "alfalfa",
-        "alfalfa",
-        "wheat",
-        "beans"
-      ],
-      "steps": {
-        "thisSeason": "Sow alfalfa this spring and keep it for two seasons. Its deep roots loosen the soil and add nitrogen.",
-        "nextSeason": "Keep the alfalfa for a second year. Cut it for feed or sell it as hay.",
-        "later": "Plough in the alfalfa, then grow wheat and beans. The wheat should need less fertilizer after alfalfa."
-      }
+      "sequence": ["alfalfa", "alfalfa", "wheat", "beans"]
     },
     {
       "id": "economic",
-      "sequence": [
-        "sugar-beet",
-        "wheat",
-        "vegetables",
-        "beans"
-      ],
-      "steps": {
-        "thisSeason": "Plant sugar beet if you have a contract with a buyer and a reliable irrigation turn.",
-        "nextSeason": "Follow with winter wheat to break pest cycles and give the soil a lighter year.",
-        "later": "Then potato or vegetables, and beans to return nitrogen to the soil. Check market prices before each season."
-      }
+      "sequence": ["sugar-beet", "wheat", "potato", "beans"]
     }
   ],
   "currentRotations": {
-    "wheat-every-year": {
-      "label": "Wheat every year",
-      "sequence": [
-        "wheat",
-        "wheat",
-        "wheat",
-        "wheat"
-      ]
-    },
-    "wheat-maize": {
-      "label": "Wheat and maize in turn",
-      "sequence": [
-        "wheat",
-        "maize",
-        "wheat",
-        "maize"
-      ]
-    },
-    "beet-wheat-maize": {
-      "label": "Sugar beet, wheat, maize",
-      "sequence": [
-        "sugar-beet",
-        "wheat",
-        "maize",
-        "sugar-beet"
-      ]
-    },
-    "alfalfa-wheat": {
-      "label": "Alfalfa, then wheat",
-      "sequence": [
-        "alfalfa",
-        "alfalfa",
-        "wheat",
-        "wheat"
-      ]
-    },
-    "vegetables-wheat": {
-      "label": "Potato or vegetables, then wheat",
-      "sequence": [
-        "vegetables",
-        "wheat",
-        "vegetables",
-        "wheat"
-      ]
-    }
+    "wheat-every-year": ["wheat", "wheat", "wheat", "wheat"],
+    "wheat-maize": ["wheat", "maize", "wheat", "maize"],
+    "beet-wheat-maize": ["sugar-beet", "wheat", "maize", "sugar-beet"],
+    "alfalfa-wheat": ["alfalfa", "alfalfa", "wheat", "wheat"],
+    "potato-wheat": ["potato", "wheat", "potato", "wheat"],
+    "vegetables-wheat": ["vegetables", "wheat", "vegetables", "wheat"]
   },
-  "assumedCurrent": "wheat-maize"
+  "reference": {
+    "id": "reference-chuy",
+    "source": "volkov-denisov",
+    "sequence": ["cereal-grass", "alfalfa", "alfalfa", "wheat", "sugar-beet", "barley"]
+  }
 }

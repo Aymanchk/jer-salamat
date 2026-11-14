@@ -48,3 +48,13 @@ export function BarleyIcon(props: IconProps) {
     </Svg>
   )
 }
+
+/** Potato: a lumpy tuber with eyes. */
+export function PotatoIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M6.5 7.5C8.8 4 14.5 3.2 17.8 6c3.3 2.8 3.3 8.3.2 11.3-3.1 3-9 3.6-12 .8C3 15.4 4.3 10.8 6.5 7.5Z" />
+      <path d="M9.5 9.5h.01M14 8.5h.01M15.5 13.5h.01M10.5 14.5h.01" strokeWidth={2.6} />
+    </Svg>
+  )
+}
