@@ -9,8 +9,13 @@ export const SOKULUK_CENTER: FieldLocation = { lat: 42.86, lon: 74.3 }
 const DEFAULT_ZOOM = 11
 /** Highest zoom the map flies to; closer than this the farmland tiles get blurry. */
 export const MAX_FLY_ZOOM = 13
-/** Kyrgyzstan, with a little padding. The map cannot be dragged far outside it. */
+/** Kyrgyzstan bounds used to compute minimum zoom so the country always fills the screen. */
 const KG_BOUNDS = L.latLngBounds([38.9, 68.9], [43.6, 80.6])
+/** Panning bounds with northern headroom so a pin in the Chuy Valley stays below the top search/chips overlay when zooming out. */
+const PAN_BOUNDS = L.latLngBounds([37.8, 67.8], [46.2, 81.8])
+/** Space reserved at the top of the map for the floating search bar + demo chips + 48px pin height. */
+const TOP_SAFE_PX = 176
+const EDGE_SAFE_PX = 28
 
 /**
  * Tile providers, in order. Both need no API key.
@@ -51,13 +56,37 @@ function ClickToPlace({ onPick }: { onPick: (location: FieldLocation) => void })
   return null
 }
 
-/** Keeps the pin on screen when it is set from outside the map (for example a button). */
+/** Keeps the pin visible below the floating search bar and demo chips when placed or when zooming out. */
 function KeepInView({ value }: { value: FieldLocation | null }) {
   const map = useMap()
   useEffect(() => {
     if (!value) return
-    const point = L.latLng(value.lat, value.lon)
-    if (!map.getBounds().pad(-0.15).contains(point)) map.panTo(point)
+    const keepPinVisible = () => {
+      const size = map.getSize()
+      if (size.x === 0 || size.y === 0) return
+      const pt = map.latLngToContainerPoint([value.lat, value.lon])
+      const topLimit = Math.min(TOP_SAFE_PX, Math.round(size.y * 0.48))
+      const bottomLimit = size.y - EDGE_SAFE_PX
+      const leftLimit = EDGE_SAFE_PX
+      const rightLimit = size.x - EDGE_SAFE_PX
+      let dx = 0
+      let dy = 0
+      if (pt.y < topLimit) dy = pt.y - topLimit - 16
+      else if (pt.y > bottomLimit) dy = pt.y - bottomLimit + 16
+      if (pt.x < leftLimit) dx = pt.x - leftLimit - 16
+      else if (pt.x > rightLimit) dx = pt.x - rightLimit + 16
+      if (dx !== 0 || dy !== 0) {
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        map.panBy([dx, dy], { animate: !reduced })
+      }
+    }
+    keepPinVisible()
+    map.on('zoomend', keepPinVisible)
+    map.on('resize', keepPinVisible)
+    return () => {
+      map.off('zoomend', keepPinVisible)
+      map.off('resize', keepPinVisible)
+    }
   }, [map, value])
   return null
 }
@@ -82,13 +111,19 @@ function FillMinZoom() {
   return null
 }
 
-/** Smoothly moves the map to a place picked from search, GPS or a demo chip. */
+/** Smoothly moves the map to a place picked from search, GPS or a demo chip, framing it below the top overlay. */
 function FlyTo({ target }: { target: FlyTarget | null }) {
   const map = useMap()
   useEffect(() => {
     if (!target) return
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    map.flyTo([target.lat, target.lon], Math.min(target.zoom ?? MAX_FLY_ZOOM, MAX_FLY_ZOOM), { animate: !reduced, duration: 1 })
+    const zoom = Math.min(target.zoom ?? MAX_FLY_ZOOM, MAX_FLY_ZOOM)
+    const size = map.getSize()
+    // Offset the map center slightly north so the pin sits in the clear area below the top search/chips bar.
+    const offsetY = size.y > 0 && size.y < 640 ? 44 : 24
+    const targetPt = map.project([target.lat, target.lon], zoom).subtract([0, offsetY])
+    const center = map.unproject(targetPt, zoom)
+    map.flyTo(center, zoom, { animate: !reduced, duration: 1 })
   }, [map, target])
   return null
 }
@@ -124,7 +159,7 @@ export default function FieldMap({ value, onChange, flyTarget = null, onTilesLoa
       zoom={DEFAULT_ZOOM}
       minZoom={7}
       maxZoom={18}
-      maxBounds={KG_BOUNDS}
+      maxBounds={PAN_BOUNDS}
       maxBoundsViscosity={1}
       scrollWheelZoom
       zoomControl={false}

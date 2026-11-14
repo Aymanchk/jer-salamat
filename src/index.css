@@ -4,6 +4,18 @@
 @import 'tailwindcss';
 @config '../tailwind.config.ts';
 
+@property --fade-start {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --fade-end {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
 @layer base {
   html {
     font-family: var(--font-family-sans);
@@ -110,6 +122,54 @@
   }
   .no-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Scroll-driven edge fades for horizontal chip rails (with IntersectionObserver fallback). */
+  .chip-scroller {
+    overflow-x: auto;
+    --fade-size: 2.75rem;
+    --fade-dir: right;
+    --fade-start-pos: 0;
+    --fade-end-pos: 100%;
+    scroll-padding-inline: var(--fade-size);
+    -webkit-mask:
+      linear-gradient(#000, #000) no-clip subtract,
+      linear-gradient(to var(--fade-dir), #000, transparent) var(--fade-start-pos) 0 / var(--fade-start) 100% no-repeat no-clip,
+      linear-gradient(to var(--fade-dir), transparent, #000) var(--fade-end-pos) 0 / var(--fade-end) 100% no-repeat no-clip;
+    mask:
+      linear-gradient(#000, #000) no-clip subtract,
+      linear-gradient(to var(--fade-dir), #000, transparent) var(--fade-start-pos) 0 / var(--fade-start) 100% no-repeat no-clip,
+      linear-gradient(to var(--fade-dir), transparent, #000) var(--fade-end-pos) 0 / var(--fade-end) 100% no-repeat no-clip;
+    transition:
+      --fade-start 0.2s,
+      --fade-end 0.2s;
+  }
+  .chip-scroller.more-start {
+    --fade-start: var(--fade-size);
+  }
+  .chip-scroller.more-end {
+    --fade-end: var(--fade-size);
+  }
+  @supports ((animation-timeline: scroll()) and (animation-range: 0% 100%)) {
+    .chip-scroller {
+      animation:
+        reveal-fade-start linear both,
+        hide-fade-end linear both;
+      animation-timeline: scroll(self inline);
+      animation-range:
+        0 var(--fade-size),
+        calc(100% - var(--fade-size)) 100%;
+    }
+  }
+  @keyframes reveal-fade-start {
+    to {
+      --fade-start: var(--fade-size);
+    }
+  }
+  @keyframes hide-fade-end {
+    from {
+      --fade-end: var(--fade-size);
+    }
   }
 
   /* Leaflet: match the app's type and pin style. */

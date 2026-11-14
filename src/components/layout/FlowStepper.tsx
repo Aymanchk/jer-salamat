@@ -88,8 +88,8 @@ export function FlowStepper() {
                 onClick={() => go(step)}
                 aria-current={active ? 'step' : undefined}
                 className={cx(
-                  'flex min-h-11 min-w-11 flex-1 items-center justify-center gap-1.5 rounded-pill px-2 text-sm font-bold transition-colors duration-fast sm:justify-start sm:px-3',
-                  active && 'neon-chip text-on-accent',
+                  'flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-pill px-2 text-sm font-bold transition-colors duration-fast sm:min-w-11 sm:justify-start sm:px-3',
+                  active ? 'min-w-0 neon-chip text-on-accent' : 'min-w-11',
                   !active && done && 'text-heading hover:bg-primary-soft',
                   !active && !done && 'text-text-muted',
                   !clickable && !active && 'cursor-default',
@@ -107,7 +107,7 @@ export function FlowStepper() {
                 <span className={cx('truncate', !active && 'max-sm:sr-only')}>{t(step.label)}</span>
                 {done && <span className="sr-only"> {t('step.done')}</span>}
               </button>
-              {i < STEPS.length - 1 && <span aria-hidden="true" className="h-px w-3 shrink-0 bg-border-strong sm:w-4" />}
+              {i < STEPS.length - 1 && <span aria-hidden="true" className="h-px w-2 shrink-0 bg-border-strong sm:w-4" />}
             </li>
           )
         })}

@@ -1,5 +1,5 @@
-import { ArrowRight, Info, LoaderCircle, LocateFixed, MapPin, Sparkles } from 'lucide-react'
-import { lazy, Suspense, useState } from 'react'
+import { ArrowRight, ChevronRight, Info, LoaderCircle, LocateFixed, MapPin, Sparkles } from 'lucide-react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { CoachMarks } from '@/components/map/CoachMarks'
 import type { FlyTarget } from '@/components/map/FieldMap'
@@ -23,6 +23,33 @@ export default function FieldPage() {
   const [gps, setGps] = useState<GpsState>('idle')
   const [tilesLoading, setTilesLoading] = useState(true)
   const [backupTiles, setBackupTiles] = useState(false)
+  const chipsRef = useRef<HTMLDivElement>(null)
+  const [moreStart, setMoreStart] = useState(false)
+  const [moreEnd, setMoreEnd] = useState(false)
+
+  useEffect(() => {
+    const scroller = chipsRef.current
+    if (!scroller) return
+    const first = scroller.firstElementChild
+    const last = scroller.lastElementChild
+    if (!first || !last) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const { target, intersectionRatio } of entries) {
+          if (target === first) setMoreStart(intersectionRatio < 1)
+          if (target === last) setMoreEnd(intersectionRatio < 1)
+        }
+      },
+      { root: scroller, threshold: 1, rootMargin: '1px' },
+    )
+    observer.observe(first)
+    observer.observe(last)
+    return () => observer.disconnect()
+  }, [lang])
+
+  const scrollChipsRight = () => {
+    chipsRef.current?.scrollBy({ left: 160, behavior: 'smooth' })
+  }
 
   const place = (lat: number, lon: number, name: string | null, zoom = 13) => {
     setField({ lat, lon })
@@ -67,28 +94,49 @@ export default function FieldPage() {
         </Suspense>
 
         {/* Search and demo chips float over the map. */}
-        <div className="absolute inset-x-0 top-0 z-[1000] flex flex-col gap-2 p-3 sm:p-4">
-          <PlaceSearch onPick={(p) => place(p.lat, p.lon, p.name)} className="mx-auto w-full max-w-lg" />
-          <div className="no-scrollbar mx-auto flex w-full max-w-lg gap-2 overflow-x-auto pr-6 [mask-image:linear-gradient(90deg,#000_82%,transparent)] sm:pr-0 sm:[mask-image:none]" role="group" aria-label={t('field.demoFields')}>
-            {DEMO_POINTS.map((p) => {
-              const selected = field?.lat === p.lat && field?.lon === p.lon
-              return (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => place(p.lat, p.lon, t('field.demo', { name: p.name }))}
-                  aria-pressed={selected}
-                  className={cx(
-                    'glass inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-pill border px-3 text-sm font-bold transition-colors duration-fast',
-                    selected ? 'border-selected text-accent-text shadow-glow-soft' : 'border-glass text-text hover:border-border-strong',
-                  )}
-                >
-                  <Sparkles size={14} aria-hidden="true" />
-                  {p.name}
-                  <span className="sr-only"> {t('field.demoField')}</span>
-                </button>
-              )
-            })}
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-[1000] flex flex-col gap-2 p-3 sm:p-4">
+          <PlaceSearch onPick={(p) => place(p.lat, p.lon, p.name)} className="pointer-events-auto mx-auto w-full max-w-lg" />
+          <div className="relative mx-auto flex w-full max-w-lg items-center">
+            <div
+              ref={chipsRef}
+              className={cx(
+                'chip-scroller no-scrollbar pointer-events-auto flex w-full gap-2 pr-10 sm:pr-0',
+                moreStart && 'more-start',
+                moreEnd && 'more-end',
+              )}
+              role="group"
+              aria-label={t('field.demoFields')}
+            >
+              {DEMO_POINTS.map((p) => {
+                const selected = field?.lat === p.lat && field?.lon === p.lon
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => place(p.lat, p.lon, t('field.demo', { name: p.name }))}
+                    aria-pressed={selected}
+                    className={cx(
+                      'glass inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-pill border px-3 text-sm font-bold transition-colors duration-fast',
+                      selected ? 'border-selected text-accent-text shadow-glow-soft' : 'border-glass text-text hover:border-border-strong',
+                    )}
+                  >
+                    <Sparkles size={14} aria-hidden="true" />
+                    {t('field.demo', { name: p.name })}
+                  </button>
+                )
+              })}
+            </div>
+            {moreEnd && (
+              <button
+                type="button"
+                onClick={scrollChipsRight}
+                tabIndex={-1}
+                aria-hidden="true"
+                className="glass pointer-events-auto absolute right-0 inline-flex h-11 w-11 items-center justify-center rounded-pill border border-border-strong text-accent-text shadow-raised sm:hidden"
+              >
+                <ChevronRight size={18} strokeWidth={2.5} />
+              </button>
+            )}
           </div>
         </div>
 
