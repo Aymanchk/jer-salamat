@@ -53,7 +53,7 @@ export function FlowStepper() {
   const isDone = (step: FlowStep, i: number) => {
     if (step.id === 'field') return field !== null && i !== currentIndex
     if (step.id === 'questions') return answeredAll && i !== currentIndex
-    return onResults && i < currentIndex
+    return onResults && field !== null && answeredAll && i < currentIndex
   }
   const canGo = (step: FlowStep, i: number) => {
     if (i === currentIndex) return false
