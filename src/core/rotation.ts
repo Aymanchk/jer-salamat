@@ -256,7 +256,7 @@ export function recommend(answers: FarmerAnswers, climate: ClimateData | null, d
   const confidenceReason =
     unknown === 0
       ? 'You answered all 5 questions, and we have 40 years of NASA climate data for your area.'
-      : `${unknown} of 5 answers were "I don't know", so the plan relies more on general rules.`
+      : `${unknown} of 5 answers ${unknown === 1 ? 'was' : 'were'} "I don't know", so the plan relies more on general rules.`
 
   return {
     best,
