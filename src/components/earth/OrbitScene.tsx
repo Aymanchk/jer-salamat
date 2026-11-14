@@ -34,8 +34,8 @@ interface Bounds {
 }
 
 const DEG = Math.PI / 180
-/** Sokuluk, Chuy Valley. */
-const TARGET = { lat: 42.86, lon: 74.3 }
+/** Where the camera ends up: the middle of Kyrgyzstan, so the whole country fits and the Chuy Valley sits north. */
+const VIEW = { lat: 41.6, lon: 74.8 }
 /** Chuy Valley, drawn as an ellipse (illustrative). */
 const VALLEY = { lat: 42.85, lon: 74.7, aLon: 1.45, bLat: 0.24 }
 /** Dense dot patch over Central Asia, revealed during the descent: a soft-edged disc around the target. */
@@ -61,7 +61,9 @@ const easeOutCubic = (t: number) => 1 - (1 - t) ** 3
 const WORLD: Bounds = { lon0: -180, lon1: 180, lat0: -90, lat1: 90 }
 
 /** Rasterises a shape once inside a lon/lat box, then answers "is this point inside?" by pixel lookup. */
-function makeMask(geo: Parameters<ReturnType<typeof geoPath>>[0], width: number, height: number, b: Bounds = WORLD) {
+function makeMask(geo: Parameters<ReturnType<typeof geoPath>>[0], width: number, b: Bounds = WORLD) {
+  // Height follows the box's aspect, so x and y use the same degrees-per-pixel as the projection.
+  const height = Math.round((width * (b.lat1 - b.lat0)) / (b.lon1 - b.lon0))
   const canvas = document.createElement('canvas')
   canvas.width = width
   canvas.height = height
@@ -98,12 +100,12 @@ interface DotData {
 
 function buildDots(dense: boolean): { globe: DotData; patch: DotData } {
   const landGeo = feature(land110 as never, (land110 as unknown as { objects: { land: GeometryCollection } }).objects.land)
-  const isLand = makeMask(landGeo as never, 1440, 720)
+  const isLand = makeMask(landGeo as never, 1440)
   const kgGeo = { type: 'Polygon', coordinates: [KG.ring] } as const
   // Kyrgyzstan mask covers the patch box only, so it can be fine-grained.
-  const isKG = makeMask(kgGeo as never, 1400, 800, PATCH)
+  const isKG = makeMask(kgGeo as never, 1600, PATCH)
 
-  const center = toVec3(TARGET.lon, TARGET.lat)
+  const center = toVec3(VIEW.lon, VIEW.lat)
   const g: number[] = []
   const gk: number[] = []
   const gr: number[] = []
@@ -390,22 +392,36 @@ function Earth({ progress, dense, wide }: EarthProps) {
     const valley = smooth(0.66, 0.86, p)
 
     // Slow idle spin while in orbit, blending into the target orientation.
-    const idle = -TARGET.lon * DEG + 0.55 - t * 0.04
-    const yaw = lerp(idle, -TARGET.lon * DEG, smooth(0.04, 0.6, p))
-    const pitch = lerp(0.25, TARGET.lat * DEG, smooth(0.04, 0.6, p))
+    const idle = -VIEW.lon * DEG + 0.55 - t * 0.04
+    const yaw = lerp(idle, -VIEW.lon * DEG, smooth(0.04, 0.6, p))
+    const pitch = lerp(0.25, VIEW.lat * DEG, smooth(0.04, 0.6, p))
     g.rotation.set(pitch + pointer.current.y * 0.03 * (1 - dive), yaw + pointer.current.x * 0.05 * (1 - dive), 0, 'XYZ')
 
-    // Wide screens: globe on the right of the text. Phones: globe in the top half, smaller.
-    const narrow = size.width / size.height < 0.9
+    // Wide screens: globe on the right of the text.
+    // Phones and tablets: a smaller globe framed in the free space above the headline.
+    const W = size.width
+    const H = size.height
+    const tanHalf = Math.tan((35 / 2) * DEG)
+    let far = 5.0
+    let startY = 0
+    if (!wide) {
+      const header = 56
+      const avail = Math.max(120, H * 0.36 - header)
+      const radiusPx = Math.min(W * 0.42, avail / 2)
+      const centerPx = header + avail / 2 + 4
+      far = H / 2 / (radiusPx * tanHalf)
+      startY = ((H / 2 - centerPx) / (H / 2)) * far * tanHalf
+    }
     const offsetX = wide ? lerp(1.3, 0, smooth(0.05, 0.55, p)) : 0
-    const offsetY = wide ? 0 : lerp(narrow ? 1.75 : 0.9, 0, smooth(0.05, 0.55, p))
+    const offsetY = lerp(startY, 0, smooth(0.05, 0.55, p))
     g.position.set(offsetX, offsetY, 0)
 
-    // Camera: far orbit → close, oblique look at the valley surface.
-    const far = wide ? 5.0 : narrow ? 6.6 : 5.4
-    const dist = lerp(far + (1 - intro) * 1.2, 1.24, easeOutCubic(dive))
+    // End distance: close enough to feel the descent, far enough that all of Kyrgyzstan fits the width.
+    const aspect = Math.min(1.2, W / H)
+    const near = 1 + Math.max(0.24, 0.095 / (tanHalf * aspect))
+    const dist = lerp(far + (1 - intro) * 1.2, near, easeOutCubic(dive))
     const tilt = smooth(0.62, 1, p)
-    camera.position.set(0, lerp(0, -0.42, tilt), dist)
+    camera.position.set(0, lerp(0, -1.5 * (near - 1), tilt), dist)
     look.set(0, 0, lerp(0, 1, tilt))
     camera.lookAt(look)
 

@@ -28,8 +28,8 @@ function Lines({ lines, className }: { lines: ReactNode[]; className?: string })
         <span key={i} className="block overflow-hidden pb-[0.08em]">
           <m.span
             className={cx('block', className)}
-            initial={{ y: '60%', opacity: 0.001 }}
-            animate={{ y: 0, opacity: 1 }}
+            initial={{ y: '35%' }}
+            animate={{ y: 0 }}
             transition={{ duration: 0.55, delay: 0.05 + i * 0.09, ease: [0.2, 0.7, 0.2, 1] }}
           >
             {line}
@@ -137,8 +137,18 @@ function OrbitStory({ onHow }: { onHow: () => void }) {
   }, [])
 
   return (
-    <section ref={ref} aria-labelledby="hero-title" data-theme="dark" className="relative -mt-header h-[340vh] bg-bg text-text">
+    <section ref={ref} aria-labelledby="hero-title" data-theme="dark" className="relative -mt-header h-[230vh] bg-bg text-text lg:h-[340vh]">
       <div className="sticky top-0 h-[100dvh] overflow-hidden">
+        {/* Static globe until the 3D one is ready (slow phones, background tabs), so the scene is never empty. */}
+        {!ready && (
+          <img
+            src="/globe-fallback.svg"
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-[calc(var(--size-header)+0.5rem)] aspect-square w-[min(62vw,30vh)] -translate-x-1/2 opacity-90 lg:left-auto lg:right-[6%] lg:top-1/2 lg:w-[min(40vw,70vh)] lg:-translate-x-0 lg:-translate-y-1/2"
+          />
+        )}
+
         {/* 3D Earth */}
         <div aria-hidden="true" className={cx('absolute inset-0 transition-opacity duration-slow', ready ? 'opacity-100' : 'opacity-0')}>
           {load3D && (
@@ -150,7 +160,7 @@ function OrbitStory({ onHow }: { onHow: () => void }) {
 
         {/* Scrims keep text off the busy globe. */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,var(--color-bg)_0%,color-mix(in_srgb,var(--color-bg)_85%,transparent)_30%,transparent_62%)] max-lg:hidden" />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(0deg,var(--color-bg)_0%,var(--color-bg)_60%,color-mix(in_srgb,var(--color-bg)_70%,transparent)_72%,transparent_86%)] lg:hidden" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(0deg,var(--color-bg)_0%,var(--color-bg)_52%,color-mix(in_srgb,var(--color-bg)_75%,transparent)_60%,transparent_68%)] lg:hidden" />
 
         <Container className="relative h-full">
           {/* Scene 1: the headline. Visible immediately. */}
