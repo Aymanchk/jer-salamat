@@ -349,7 +349,7 @@ export const en: Record<string, string> = {
   'missing.soil': 'Your soil type. A soil test would make this plan more reliable.',
   'missing.irrigation': 'Whether you can irrigate. This changes which crops are safe.',
   'missing.income': 'Local yields, prices and costs: income cannot be reliably estimated with available data.',
-  'nasa.factor.t2mWarming': 'T2M (air temperature at 2 m): +{trend} °C along the 40-year trend line ({decade} °C/decade, statistically significant), increasing summer evaporative demand and weighting lower-water rotations.',
+  'nasa.factor.t2mWarming': 'T2M (air temperature at 2 m): {trend} °C along the 40-year trend line ({decade} °C/decade, statistically significant), increasing summer evaporative demand and weighting lower-water rotations.',
   'nasa.factor.t2mFlat': 'T2M (air temperature at 2 m): no statistically significant 40-year trend ({decade} °C/decade).',
   'nasa.factor.prec': 'PRECTOTCORR (annual precipitation): 40-year mean is {mean} mm/year (driest year: {min} mm), compared against this plan\'s FAO crop water range of {planMin}–{planMax} mm/season.',
   'nasa.factor.gwetDrying': 'GWETROOT (root-zone soil wetness, 0–1): 40-year mean is {mean} (driest year: {min}) with a drying trend, increasing water-saving weight.',
