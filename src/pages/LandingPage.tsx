@@ -86,7 +86,7 @@ function StoryPanel({
   const [visible, setVisible] = useState(false)
   useMotionValueEvent(opacity, 'change', (v) => setVisible(v > 0.05))
   return (
-    <m.div style={{ opacity, y }} aria-hidden={!visible} className={cx('absolute', !visible && 'pointer-events-none', className)}>
+    <m.div style={{ opacity, y }} aria-hidden={!visible} inert={!visible} className={cx('absolute', !visible && 'pointer-events-none', className)}>
       {children}
     </m.div>
   )
