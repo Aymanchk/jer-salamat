@@ -19,6 +19,7 @@ export default function FieldPage() {
   const [flyTarget, setFlyTarget] = useState<FlyTarget | null>(null)
   const [placeName, setPlaceName] = useState<string | null>(null)
   const [gps, setGps] = useState<GpsState>('idle')
+  const [tilesLoading, setTilesLoading] = useState(true)
 
   const place = (lat: number, lon: number, name: string | null, zoom = 13) => {
     setField({ lat, lon })
@@ -56,6 +57,7 @@ export default function FieldPage() {
               setPlaceName(null)
             }}
             flyTarget={flyTarget}
+            onTilesLoading={setTilesLoading}
             className="h-full w-full"
           />
         </Suspense>
@@ -85,6 +87,13 @@ export default function FieldPage() {
             })}
           </div>
         </div>
+
+        {tilesLoading && (
+          <p role="status" className="glass pointer-events-none absolute bottom-3 left-1/2 z-[1000] inline-flex -translate-x-1/2 items-center gap-2 rounded-pill border border-glass px-3 py-1.5 text-sm text-text">
+            <LoaderCircle size={14} aria-hidden="true" className="animate-spin" />
+            Loading map… you can already search or tap
+          </p>
+        )}
 
         <CoachMarks />
       </div>

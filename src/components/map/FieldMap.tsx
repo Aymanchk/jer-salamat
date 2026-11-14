@@ -69,10 +69,12 @@ interface FieldMapProps {
   onChange: (location: FieldLocation) => void
   /** A new object here makes the map fly to it. */
   flyTarget?: FlyTarget | null
+  /** True while map tiles are downloading (the pin and search work meanwhile). */
+  onTilesLoading?: (loading: boolean) => void
   className?: string
 }
 
-export default function FieldMap({ value, onChange, flyTarget = null, className }: FieldMapProps) {
+export default function FieldMap({ value, onChange, flyTarget = null, onTilesLoading, className }: FieldMapProps) {
   const icon = useMemo(
     () => L.divIcon({ className: 'field-pin', html: PIN_HTML, iconSize: [40, 48], iconAnchor: [20, 47] }),
     [],
@@ -101,6 +103,10 @@ export default function FieldMap({ value, onChange, flyTarget = null, className 
         keepBuffer={4}
         updateWhenZooming={false}
         maxZoom={16}
+        eventHandlers={{
+          loading: () => onTilesLoading?.(true),
+          load: () => onTilesLoading?.(false),
+        }}
       />
       <ClickToPlace onPick={onChange} />
       <KeepInView value={value} />

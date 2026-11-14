@@ -105,7 +105,16 @@ function OrbitStory({ onHow }: { onHow: () => void }) {
   const wide = useMediaQuery('(min-width: 1024px)')
   const [load3D, setLoad3D] = useState(false)
   const [ready, setReady] = useState(false)
+  const [slow, setSlow] = useState(false)
   const [active, setActive] = useState(true)
+  const [hidden, setHidden] = useState(() => document.visibilityState === 'hidden')
+
+  // Stop rendering in a background tab.
+  useEffect(() => {
+    const onVis = () => setHidden(document.visibilityState === 'hidden')
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [])
   const [chapter, setChapter] = useState(0)
   const heroOpacity = useTransform(scrollYProgress, [0, 0.07, 0.15], [1, 1, 0])
   const heroY = useTransform(scrollYProgress, [0, 0.15], [0, -40])
@@ -150,10 +159,19 @@ function OrbitStory({ onHow }: { onHow: () => void }) {
         )}
 
         {/* 3D Earth */}
-        <div aria-hidden="true" className={cx('absolute inset-0 transition-opacity duration-slow', ready ? 'opacity-100' : 'opacity-0')}>
-          {load3D && (
+        <div aria-hidden="true" className={cx('pointer-events-none absolute inset-0 transition-opacity duration-slow', ready ? 'opacity-100' : 'opacity-0')}>
+          {load3D && !slow && (
             <Suspense fallback={null}>
-              <OrbitScene progress={scrollYProgress} active={active} wide={wide} onReady={() => setReady(true)} />
+              <OrbitScene
+                progress={scrollYProgress}
+                active={active && !hidden}
+                wide={wide}
+                onReady={() => setReady(true)}
+                onSlow={() => {
+                  setSlow(true)
+                  setReady(false)
+                }}
+              />
             </Suspense>
           )}
         </div>

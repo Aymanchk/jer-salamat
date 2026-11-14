@@ -109,7 +109,7 @@ function buildDots(dense: boolean): { globe: DotData; patch: DotData } {
   const g: number[] = []
   const gk: number[] = []
   const gr: number[] = []
-  const N = dense ? 26000 : 14000
+  const N = dense ? 26000 : 9000
   const golden = Math.PI * (3 - Math.sqrt(5))
   for (let i = 0; i < N; i++) {
     const y = 1 - ((i + 0.5) / N) * 2
@@ -130,7 +130,7 @@ function buildDots(dense: boolean): { globe: DotData; patch: DotData } {
   const pk: number[] = []
   const pr: number[] = []
   const pe: number[] = []
-  const step = dense ? 0.085 : 0.13
+  const step = dense ? 0.085 : 0.16
   for (let lat = PATCH.lat0; lat < PATCH.lat1; lat += step) {
     // Keep dots evenly spaced on the sphere.
     const lonStep = step / Math.cos(lat * DEG)
@@ -485,15 +485,45 @@ function Stars({ count }: { count: number }) {
   )
 }
 
+/** Calls onSlow when the frame rate stays under 30 fps for 2 seconds (after a 2 s warm-up). */
+function FpsGuard({ onSlow }: { onSlow: () => void }) {
+  const state = useRef({ started: -1, windowStart: -1, frames: 0, fired: false })
+  useFrame(({ clock }) => {
+    const s = state.current
+    const t = clock.elapsedTime
+    if (s.fired) return
+    if (s.started < 0) s.started = t
+    if (t - s.started < 2) return
+    if (s.windowStart < 0) {
+      s.windowStart = t
+      s.frames = 0
+      return
+    }
+    s.frames++
+    const span = t - s.windowStart
+    if (span >= 2) {
+      if (s.frames / span < 30) {
+        s.fired = true
+        onSlow()
+      }
+      s.windowStart = t
+      s.frames = 0
+    }
+  })
+  return null
+}
+
 interface OrbitSceneProps {
   progress: MotionValue<number>
   active: boolean
   wide: boolean
   onReady: () => void
+  /** The device cannot keep 30 fps: the page switches to the static globe. */
+  onSlow: () => void
 }
 
-export default function OrbitScene({ progress, active, wide, onReady }: OrbitSceneProps) {
-  const [maxDpr, setMaxDpr] = useState(1.6)
+export default function OrbitScene({ progress, active, wide, onReady, onSlow }: OrbitSceneProps) {
+  const [maxDpr, setMaxDpr] = useState(1.5)
   const [dense, setDense] = useState(() => window.innerWidth >= 900)
 
   return (
@@ -503,7 +533,10 @@ export default function OrbitScene({ progress, active, wide, onReady }: OrbitSce
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       frameloop={active ? 'always' : 'never'}
       onCreated={onReady}
+      // The globe is not interactive: page scrolling and taps always go to the page.
+      style={{ pointerEvents: 'none', touchAction: 'pan-y' }}
     >
+      <FpsGuard onSlow={onSlow} />
       <PerformanceMonitor
         onDecline={() => {
           setMaxDpr(1)
