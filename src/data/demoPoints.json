@@ -1,0 +1,5 @@
+[
+  { "id": "kara-balta", "name": "Kara-Balta (west Chuy)", "lat": 42.81, "lon": 73.85 },
+  { "id": "sokuluk", "name": "Sokuluk (central Chuy)", "lat": 42.86, "lon": 74.3 },
+  { "id": "tokmok", "name": "Tokmok (east Chuy)", "lat": 42.84, "lon": 75.29 }
+]

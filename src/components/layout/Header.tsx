@@ -1,0 +1,85 @@
+import { Menu, Moon, Sprout, Sun, X } from 'lucide-react'
+import { useState } from 'react'
+import { Link, NavLink } from 'react-router'
+import { cx } from '@/lib'
+import { useTheme } from '@/state/theme'
+
+const NAV = [
+  { to: '/', label: 'Home' },
+  { to: '/field', label: 'My field' },
+  { to: '/results', label: 'Results' },
+  { to: '/about', label: 'About' },
+]
+
+const linkClass = ({ isActive }: { isActive: boolean }) =>
+  cx(
+    'inline-flex min-h-tap items-center rounded-control px-3 font-bold no-underline transition-colors duration-fast',
+    isActive ? 'bg-primary-strong text-on-primary' : 'text-on-primary-muted hover:text-on-primary',
+  )
+
+export function Header() {
+  const { theme, toggle } = useTheme()
+  const [open, setOpen] = useState(false)
+
+  return (
+    <header className="on-primary-surface sticky top-0 z-header bg-primary text-on-primary">
+      <div className="mx-auto flex h-header max-w-content items-center gap-2 px-gutter">
+        <Link to="/" className="mr-auto inline-flex min-h-tap items-center gap-2 text-lg font-extrabold text-on-primary no-underline">
+          <Sprout size={24} aria-hidden="true" className="text-accent" />
+          Jer Salamat
+        </Link>
+
+        <nav aria-label="Main" className="hidden md:block">
+          <ul className="flex items-center gap-1">
+            {NAV.map((item) => (
+              <li key={item.to}>
+                <NavLink to={item.to} end={item.to === '/'} className={linkClass}>
+                  {item.label}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <button
+          type="button"
+          onClick={toggle}
+          aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+          className="inline-flex h-tap w-tap items-center justify-center rounded-control text-on-primary-muted hover:text-on-primary"
+        >
+          {theme === 'dark' ? <Sun size={22} aria-hidden="true" /> : <Moon size={22} aria-hidden="true" />}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-controls="mobile-nav"
+          aria-label={open ? 'Close menu' : 'Open menu'}
+          className="-mr-2 inline-flex h-tap w-tap items-center justify-center rounded-control text-on-primary md:hidden"
+        >
+          {open ? <X size={24} aria-hidden="true" /> : <Menu size={24} aria-hidden="true" />}
+        </button>
+      </div>
+
+      {open && (
+        <nav id="mobile-nav" aria-label="Main" className="border-t border-primary-strong bg-primary px-gutter pb-3 md:hidden">
+          <ul className="flex flex-col gap-1 pt-2">
+            {NAV.map((item) => (
+              <li key={item.to}>
+                <NavLink
+                  to={item.to}
+                  end={item.to === '/'}
+                  onClick={() => setOpen(false)}
+                  className={(s) => cx(linkClass(s), 'w-full')}
+                >
+                  {item.label}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
+    </header>
+  )
+}
