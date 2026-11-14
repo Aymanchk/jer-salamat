@@ -44,7 +44,7 @@ function daysInMonth(year: number, month: number): number {
   return new Date(Date.UTC(year, month, 0)).getUTCDate()
 }
 
-/** Monthly values → one value per year. Temperature and soil: mean. Precipitation: yearly total in mm. */
+/** Monthly values → one value per year. Temperature and soil: day-weighted mean. Precipitation: yearly total in mm. */
 export function toYearly(monthly: Record<string, number>, variable: ClimateVariable): ClimatePoint[] {
   const byYear = new Map<number, Array<{ month: number; value: number }>>()
   for (const [key, value] of Object.entries(monthly)) {
@@ -62,7 +62,9 @@ export function toYearly(monthly: Record<string, number>, variable: ClimateVaria
     const value =
       variable === 'precipitation'
         ? months.reduce((sum, m) => sum + m.value * daysInMonth(year, m.month), 0)
-        : months.reduce((sum, m) => sum + m.value, 0) / months.length
+        : // Day-weighted mean, the same way NASA POWER computes its annual value.
+          months.reduce((sum, m) => sum + m.value * daysInMonth(year, m.month), 0) /
+          months.reduce((sum, m) => sum + daysInMonth(year, m.month), 0)
     points.push({ year, value: Math.round(value * 1000) / 1000 })
   }
   return points
@@ -176,9 +178,31 @@ export async function loadClimate(
 /* ---------- Plain-language takeaways ---------- */
 
 export interface Takeaway {
-  variable: ClimateVariable
+  variable: ClimateVariable | 'record'
   text: string
   direction: 'up' | 'down' | 'flat'
+}
+
+/** Two ways to state the temperature change, so every number on screen can show its method. */
+export function temperatureChange(data: ClimateData): { trend: number; decades: number; firstSpan: string; lastSpan: string } {
+  const t = data.series.temperature.points
+  const years = t.length > 0 ? t[t.length - 1].year - t[0].year : 0
+  return {
+    trend: data.trends.temperature.slopePerDecade * (years / 10),
+    decades: last10(t) - first10(t),
+    firstSpan: t.length ? `${t[0].year}–${t[Math.min(9, t.length - 1)].year}` : '',
+    lastSpan: t.length ? `${t[Math.max(0, t.length - 10)].year}–${t[t.length - 1].year}` : '',
+  }
+}
+
+/** Hottest and driest years in the record. */
+export function records(data: ClimateData): { hottest: { year: number; value: number }; driest: { year: number; value: number } } | null {
+  const t = data.series.temperature.points
+  const p = data.series.precipitation.points
+  if (!t.length || !p.length) return null
+  const hottest = t.reduce((a, b) => (b.value > a.value ? b : a))
+  const driest = p.reduce((a, b) => (b.value < a.value ? b : a))
+  return { hottest, driest }
 }
 
 function first10(points: ClimatePoint[]): number {
@@ -198,15 +222,18 @@ export function takeaways(data: ClimateData): Takeaway[] {
   const s = data.series.soilWetness.points
   const years = t.length > 0 ? t[t.length - 1].year - t[0].year : 0
 
-  const tChange = data.trends.temperature.slopePerDecade * (years / 10)
+  const change = temperatureChange(data)
+  const tChange = change.trend
+  void years
   if (data.trends.temperature.significant && Math.abs(tChange) >= 0.3) {
+    const how = `${tChange > 0 ? '+' : '−'}${Math.abs(tChange).toFixed(1)} °C along the 40-year trend line, ${change.decades > 0 ? '+' : '−'}${Math.abs(change.decades).toFixed(2)} °C comparing ${change.firstSpan} with ${change.lastSpan}`
     out.push({
       variable: 'temperature',
       direction: tChange > 0 ? 'up' : 'down',
       text:
         tChange > 0
-          ? `It got warmer: the yearly average rose by about ${tChange.toFixed(1)} °C since ${t[0].year}. Warmer air pulls more water out of fields and crops.`
-          : `It got cooler: the yearly average fell by about ${Math.abs(tChange).toFixed(1)} °C since ${t[0].year}.`,
+          ? `It got warmer: ${how}. Warmer air pulls more water out of fields and crops.`
+          : `It got cooler: ${how}.`,
     })
   } else {
     out.push({ variable: 'temperature', direction: 'flat', text: 'Yearly average temperature shows no clear change over 40 years.' })
@@ -242,6 +269,19 @@ export function takeaways(data: ClimateData): Takeaway[] {
     })
   } else {
     out.push({ variable: 'soilWetness', direction: 'flat', text: 'Root zone soil wetness shows no clear long-term change.' })
+  }
+
+  const rec = records(data)
+  if (rec) {
+    const span = `the ${t.length}-year record`
+    out.push({
+      variable: 'record',
+      direction: 'up',
+      text:
+        rec.hottest.year === rec.driest.year
+          ? `${rec.hottest.year} was both the hottest (${rec.hottest.value.toFixed(2)} °C) and the driest (${Math.round(rec.driest.value)} mm) year in ${span}.`
+          : `The hottest year in ${span} was ${rec.hottest.year} (${rec.hottest.value.toFixed(2)} °C); the driest was ${rec.driest.year} (${Math.round(rec.driest.value)} mm).`,
+    })
   }
   return out
 }

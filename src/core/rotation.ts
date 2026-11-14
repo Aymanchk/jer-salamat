@@ -28,7 +28,8 @@ export interface CropData {
 export interface StrategyData {
   id: StrategyId
   sequence: CropId[]
-  steps: { thisSeason: string; nextSeason: string; later: string }
+  /** "...IfWaterShort" variants are used only when the farmer said water is short or the field is rain-only. */
+  steps: { thisSeason: string; nextSeason: string; later: string; laterIfWaterShort?: string }
 }
 
 export interface RotationData {
@@ -155,7 +156,7 @@ function explain(id: PlanId, sequence: CropId[], data: RotationData, ctx: Contex
 
   if (id === 'water-saving') {
     why.push('Most crops in this plan grow in the cool part of the year or need little summer water.')
-    if (ctx.waterShort) why.push('You said water is often short in summer, so we put low-water crops first.')
+    if (ctx.waterShort) why.push(ctx.rainOnly ? 'You said the field is rain-only, so we put low-water crops first.' : 'You said water is often short in summer, so we put low-water crops first.')
     if (ctx.warming) why.push('NASA data shows warmer years around your field, so summer water losses are larger than before.')
     benefits.push('Less canal or pump water in July and August.', 'Lower risk in a dry year.')
     limitations.push('Grain prices are low, so income is usually lower than with sugar beet or vegetables.')
@@ -231,6 +232,18 @@ export function recommend(answers: FarmerAnswers, climate: ClimateData | null, d
       soil: compare(plan.scores.soil, current.scores.soil),
       economy: compare(plan.scores.economy, current.scores.economy),
     }
+    // Never show "worse on water" without saying why.
+    if (plan.vsCurrent.water === 'worse') {
+      const label = data.currentRotations[currentKey].label.toLowerCase()
+      const reason = hasRepeat(currentSeq, data)
+        ? 'but growing the same crop every year wears out the soil and builds up pests and disease.'
+        : plan.vsCurrent.soil === 'better'
+          ? 'but this plan is better for the soil.'
+          : 'so switch only if soil or income matter more to you.'
+      const text = `Your current rotation (${label}) needs even less water, ${reason}`
+      if (plan.id === 'water-saving') plan.why.unshift(text)
+      else plan.limitations.unshift(text)
+    }
     return plan
   })
 
@@ -249,9 +262,15 @@ export function recommend(answers: FarmerAnswers, climate: ClimateData | null, d
         : answers.priority === 'income'
           ? 'earning more'
           : 'a balance of water, soil and income'
-  const headline = `For ${goal}, the "${planTitle(best.id)}" plan fits your field best: ${crops.join(' → ')}.`
-
   const unknown = unknownCount(answers)
+  const sequenceText = crops.join(' → ')
+  const headline =
+    unknown >= 3
+      ? `We need more answers to be sure. With what we know, the "${planTitle(best.id)}" plan is a safe start: ${sequenceText}.`
+      : answers.priority && answers.priority !== 'unknown'
+        ? `For ${goal}, the "${planTitle(best.id)}" plan fits your field best: ${sequenceText}.`
+        : `Balancing water, soil and income, the "${planTitle(best.id)}" plan fits your field best: ${sequenceText}.`
+
   const confidence: Confidence = unknown === 0 ? 'High' : unknown <= 2 ? 'Medium' : 'Low'
   const confidenceReason =
     unknown === 0
@@ -264,7 +283,7 @@ export function recommend(answers: FarmerAnswers, climate: ClimateData | null, d
     steps: [
       { label: 'This season', text: strategy.steps.thisSeason },
       { label: 'Next season', text: strategy.steps.nextSeason },
-      { label: 'In 2–3 years', text: strategy.steps.later },
+      { label: 'In 2–3 years', text: ctx.waterShort && strategy.steps.laterIfWaterShort ? strategy.steps.laterIfWaterShort : strategy.steps.later },
     ],
     confidence,
     confidenceReason,

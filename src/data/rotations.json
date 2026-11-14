@@ -3,67 +3,174 @@
   "crops": {
     "wheat": {
       "label": "Winter wheat",
-      "waterNeed": { "value": "low", "source": "Team estimate: winter wheat uses snow-melt and spring rain, little summer irrigation", "preliminary": true },
-      "soilEffect": { "value": "neutral", "source": "Team estimate", "preliminary": true },
-      "income": { "value": "low", "source": "Team estimate", "preliminary": true }
+      "waterNeed": {
+        "value": "low",
+        "source": "Team estimate: winter wheat uses snow-melt and spring rain, little summer irrigation",
+        "preliminary": true
+      },
+      "soilEffect": {
+        "value": "neutral",
+        "source": "Team estimate",
+        "preliminary": true
+      },
+      "income": {
+        "value": "low",
+        "source": "Team estimate",
+        "preliminary": true
+      }
     },
     "barley": {
       "label": "Barley",
-      "waterNeed": { "value": "low", "source": "Team estimate", "preliminary": true },
-      "soilEffect": { "value": "neutral", "source": "Team estimate", "preliminary": true },
-      "income": { "value": "low", "source": "Team estimate", "preliminary": true }
+      "waterNeed": {
+        "value": "low",
+        "source": "Team estimate",
+        "preliminary": true
+      },
+      "soilEffect": {
+        "value": "neutral",
+        "source": "Team estimate",
+        "preliminary": true
+      },
+      "income": {
+        "value": "low",
+        "source": "Team estimate",
+        "preliminary": true
+      }
     },
     "maize": {
       "label": "Maize (corn)",
-      "waterNeed": { "value": "high", "source": "Team estimate: summer crop, needs irrigation in July-August", "preliminary": true },
-      "soilEffect": { "value": "depletes", "source": "Team estimate: heavy nitrogen user", "preliminary": true },
-      "income": { "value": "medium", "source": "Team estimate", "preliminary": true }
+      "waterNeed": {
+        "value": "high",
+        "source": "Team estimate: summer crop, needs irrigation in July-August",
+        "preliminary": true
+      },
+      "soilEffect": {
+        "value": "depletes",
+        "source": "Team estimate: heavy nitrogen user",
+        "preliminary": true
+      },
+      "income": {
+        "value": "medium",
+        "source": "Team estimate",
+        "preliminary": true
+      }
     },
     "sugar-beet": {
       "label": "Sugar beet",
-      "waterNeed": { "value": "high", "source": "Team estimate", "preliminary": true },
-      "soilEffect": { "value": "depletes", "source": "Team estimate", "preliminary": true },
-      "income": { "value": "high", "source": "Team estimate", "preliminary": true }
+      "waterNeed": {
+        "value": "high",
+        "source": "Team estimate",
+        "preliminary": true
+      },
+      "soilEffect": {
+        "value": "depletes",
+        "source": "Team estimate",
+        "preliminary": true
+      },
+      "income": {
+        "value": "high",
+        "source": "Team estimate",
+        "preliminary": true
+      }
     },
     "alfalfa": {
       "label": "Alfalfa",
-      "waterNeed": { "value": "high", "source": "Team estimate: long season, deep roots", "preliminary": true },
-      "soilEffect": { "value": "builds", "source": "Team estimate: legume, fixes nitrogen", "preliminary": true },
-      "income": { "value": "medium", "source": "Team estimate: livestock feed market", "preliminary": true },
+      "waterNeed": {
+        "value": "high",
+        "source": "Team estimate: long season, deep roots",
+        "preliminary": true
+      },
+      "soilEffect": {
+        "value": "builds",
+        "source": "Team estimate: legume, fixes nitrogen",
+        "preliminary": true
+      },
+      "income": {
+        "value": "medium",
+        "source": "Team estimate: livestock feed market",
+        "preliminary": true
+      },
       "perennial": true
     },
     "beans": {
       "label": "Beans",
-      "waterNeed": { "value": "medium", "source": "Team estimate", "preliminary": true },
-      "soilEffect": { "value": "builds", "source": "Team estimate: legume, fixes nitrogen", "preliminary": true },
-      "income": { "value": "medium", "source": "Team estimate", "preliminary": true }
+      "waterNeed": {
+        "value": "medium",
+        "source": "Team estimate",
+        "preliminary": true
+      },
+      "soilEffect": {
+        "value": "builds",
+        "source": "Team estimate: legume, fixes nitrogen",
+        "preliminary": true
+      },
+      "income": {
+        "value": "medium",
+        "source": "Team estimate",
+        "preliminary": true
+      }
     },
     "vegetables": {
       "label": "Potato or vegetables",
-      "waterNeed": { "value": "high", "source": "Team estimate", "preliminary": true },
-      "soilEffect": { "value": "depletes", "source": "Team estimate", "preliminary": true },
-      "income": { "value": "high", "source": "Team estimate", "preliminary": true }
+      "waterNeed": {
+        "value": "high",
+        "source": "Team estimate",
+        "preliminary": true
+      },
+      "soilEffect": {
+        "value": "depletes",
+        "source": "Team estimate",
+        "preliminary": true
+      },
+      "income": {
+        "value": "high",
+        "source": "Team estimate",
+        "preliminary": true
+      }
     },
     "fallow": {
       "label": "Rest (fallow)",
-      "waterNeed": { "value": "low", "source": "Team estimate", "preliminary": true },
-      "soilEffect": { "value": "neutral", "source": "Team estimate", "preliminary": true },
-      "income": { "value": "low", "source": "No harvest in that season", "preliminary": true }
+      "waterNeed": {
+        "value": "low",
+        "source": "Team estimate",
+        "preliminary": true
+      },
+      "soilEffect": {
+        "value": "neutral",
+        "source": "Team estimate",
+        "preliminary": true
+      },
+      "income": {
+        "value": "low",
+        "source": "No harvest in that season",
+        "preliminary": true
+      }
     }
   },
   "strategies": [
     {
       "id": "water-saving",
-      "sequence": ["wheat", "beans", "barley", "wheat"],
+      "sequence": [
+        "wheat",
+        "beans",
+        "barley",
+        "wheat"
+      ],
       "steps": {
         "thisSeason": "Sow winter wheat this autumn. It grows on snow-melt and spring rain, so it needs little canal water in summer.",
         "nextSeason": "After the wheat harvest, plant beans. They need less water than maize and add nitrogen to the soil.",
-        "later": "Then barley and wheat again. Keep the thirstiest crops off this field while summer water is short."
+        "later": "Then barley and wheat again. Keep thirsty crops like maize and sugar beet for fields with a reliable water turn.",
+        "laterIfWaterShort": "Then barley and wheat again. Keep the thirstiest crops off this field while summer water is short."
       }
     },
     {
       "id": "soil-health",
-      "sequence": ["alfalfa", "alfalfa", "wheat", "beans"],
+      "sequence": [
+        "alfalfa",
+        "alfalfa",
+        "wheat",
+        "beans"
+      ],
       "steps": {
         "thisSeason": "Sow alfalfa this spring and keep it for two seasons. Its deep roots loosen the soil and add nitrogen.",
         "nextSeason": "Keep the alfalfa for a second year. Cut it for feed or sell it as hay.",
@@ -72,7 +179,12 @@
     },
     {
       "id": "economic",
-      "sequence": ["sugar-beet", "wheat", "vegetables", "beans"],
+      "sequence": [
+        "sugar-beet",
+        "wheat",
+        "vegetables",
+        "beans"
+      ],
       "steps": {
         "thisSeason": "Plant sugar beet if you have a contract with a buyer and a reliable irrigation turn.",
         "nextSeason": "Follow with winter wheat to break pest cycles and give the soil a lighter year.",
@@ -81,11 +193,51 @@
     }
   ],
   "currentRotations": {
-    "wheat-every-year": { "label": "Wheat every year", "sequence": ["wheat", "wheat", "wheat", "wheat"] },
-    "wheat-maize": { "label": "Wheat and maize in turn", "sequence": ["wheat", "maize", "wheat", "maize"] },
-    "beet-wheat-maize": { "label": "Sugar beet, wheat, maize", "sequence": ["sugar-beet", "wheat", "maize", "sugar-beet"] },
-    "alfalfa-wheat": { "label": "Alfalfa, then wheat", "sequence": ["alfalfa", "alfalfa", "wheat", "wheat"] },
-    "vegetables-wheat": { "label": "Potato or vegetables, then wheat", "sequence": ["vegetables", "wheat", "vegetables", "wheat"] }
+    "wheat-every-year": {
+      "label": "Wheat every year",
+      "sequence": [
+        "wheat",
+        "wheat",
+        "wheat",
+        "wheat"
+      ]
+    },
+    "wheat-maize": {
+      "label": "Wheat and maize in turn",
+      "sequence": [
+        "wheat",
+        "maize",
+        "wheat",
+        "maize"
+      ]
+    },
+    "beet-wheat-maize": {
+      "label": "Sugar beet, wheat, maize",
+      "sequence": [
+        "sugar-beet",
+        "wheat",
+        "maize",
+        "sugar-beet"
+      ]
+    },
+    "alfalfa-wheat": {
+      "label": "Alfalfa, then wheat",
+      "sequence": [
+        "alfalfa",
+        "alfalfa",
+        "wheat",
+        "wheat"
+      ]
+    },
+    "vegetables-wheat": {
+      "label": "Potato or vegetables, then wheat",
+      "sequence": [
+        "vegetables",
+        "wheat",
+        "vegetables",
+        "wheat"
+      ]
+    }
   },
   "assumedCurrent": "wheat-maize"
 }

@@ -73,14 +73,14 @@ const VARIABLES: Record<ClimateVariable, VariableMeta> = {
     info: 'All rain and snow that fell in a year, for the area around your field.',
   },
   soilWetness: {
-    title: 'Root zone soil wetness',
-    unit: 'Yearly mean, 0 (dry) to 1 (wet)',
+    title: 'Soil wetness',
+    unit: 'Root zone, yearly mean, 0 (dry) to 1 (wet)',
     icon: Droplets,
     form: 'area',
     colorToken: '--data-soil',
     softToken: '--data-soil-soft',
     iconClass: 'bg-data-soil-soft text-data-soil',
-    info: 'How wet the soil is where roots grow, from 0 (fully dry) to 1 (fully wet).',
+    info: 'Root zone soil wetness: how wet the soil is in the layer where roots grow (about the top 1 m), from 0 (fully dry) to 1 (fully wet).',
   },
 }
 
@@ -133,6 +133,13 @@ export function ChartCard({ variable, status, points, trend, summary, scenario, 
   const values = points.map((p) => p.value)
   const scenarioLabel = scenario?.label
 
+  // The record year: hottest for temperature, driest for rain and soil.
+  const recordIndex = useMemo(() => {
+    if (values.length === 0) return -1
+    const target = variable === 'temperature' ? Math.max(...values) : Math.min(...values)
+    return values.lastIndexOf(target)
+  }, [values, variable])
+
   const data = useMemo<ChartData<'bar' | 'line', number[], number>>(() => {
     const color = tokens[meta.colorToken]
     const soft = tokens[meta.softToken]
@@ -169,7 +176,7 @@ export function ChartCard({ variable, status, points, trend, summary, scenario, 
         type: 'bar',
         label: meta.title,
         data: values,
-        backgroundColor: color,
+        backgroundColor: values.map((_, i) => (i === recordIndex ? tokens['--data-scenario'] : color)),
         borderRadius: 2,
         categoryPercentage: 0.8,
         barPercentage: 0.85,
@@ -185,17 +192,28 @@ export function ChartCard({ variable, status, points, trend, summary, scenario, 
         fill: meta.form === 'area' ? 'start' : false,
         borderWidth: 2.5,
         tension: 0.25,
-        pointRadius: 0,
+        pointRadius: values.map((_, i) => (i === recordIndex ? 5 : 0)),
         pointHoverRadius: 5,
-        pointBackgroundColor: color,
+        pointBackgroundColor: values.map((_, i) => (i === recordIndex ? tokens['--data-scenario'] : color)),
+        pointBorderColor: tokens['--color-surface'],
+        pointBorderWidth: 1.5,
         order: 1,
       })
     }
     return { labels: years, datasets }
-  }, [tokens, meta, values, years, points, scenario])
+  }, [tokens, meta, values, years, points, scenario, recordIndex])
 
   const options = useMemo<ChartOptions<'bar' | 'line'>>(() => {
     const tick = { color: tokens['--color-text-muted'], font: { family: tokens['--font-family-sans'], size: 13 } }
+    // Tight value range so real change is visible; bars start at zero with headroom.
+    const lo = values.length ? Math.min(...values) : 0
+    const hi = values.length ? Math.max(...values) + (scenario?.offset ?? 0) : 1
+    const yRange =
+      variable === 'temperature'
+        ? { min: Math.floor(lo - 1), max: Math.ceil(hi + 1) }
+        : variable === 'soilWetness'
+          ? { min: Math.max(0, Math.floor((lo - 0.03) * 100) / 100), max: Math.min(1, Math.ceil((hi + 0.03) * 100) / 100) }
+          : { min: 0, max: Math.ceil((hi * 1.15) / 50) * 50 }
     return {
       responsive: true,
       maintainAspectRatio: false,
@@ -225,16 +243,27 @@ export function ChartCard({ variable, status, points, trend, summary, scenario, 
         x: {
           grid: { display: false },
           border: { color: tokens['--data-grid'] },
-          ticks: { ...tick, maxRotation: 0, autoSkip: true, maxTicksLimit: 5 },
+          // Every 10 years plus the last year, so 2025 is always labelled.
+          ticks: {
+            ...tick,
+            maxRotation: 0,
+            autoSkip: false,
+            callback: (_value, index) => {
+              const year = years[index]
+              const last = index === years.length - 1
+              return last || (year % 10 === 0 && years[years.length - 1] - year >= 4) ? String(year) : ''
+            },
+          },
         },
         y: {
+          ...yRange,
           grid: { color: tokens['--data-grid'] },
           border: { display: false },
           ticks: { ...tick, maxTicksLimit: 5 },
         },
       },
     }
-  }, [tokens, reducedMotion, variable])
+  }, [tokens, reducedMotion, variable, values, years, scenario])
 
   const yearSpan = years.length ? `${years[0]}–${years[years.length - 1]}` : '1986–2025'
 
@@ -245,9 +274,7 @@ export function ChartCard({ variable, status, points, trend, summary, scenario, 
           <Icon size={22} />
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="text-lg leading-snug">
-            {variable === 'soilWetness' ? <Term id="rootZone" align="right" /> : meta.title}
-          </h3>
+          <h3 className="text-lg leading-snug">{meta.title}</h3>
           <p className="text-sm text-text-muted">
             {meta.unit} · {yearSpan}
           </p>
@@ -310,6 +337,18 @@ export function ChartCard({ variable, status, points, trend, summary, scenario, 
           </ul>
 
           <p className="border-t border-border pt-3 text-text">{summary}</p>
+          {recordIndex >= 0 && (
+            <p className="flex items-center gap-2 text-sm text-text-muted">
+              <span aria-hidden="true" className="h-2.5 w-2.5 shrink-0 rounded-pill" style={{ background: tokens['--data-scenario'] }} />
+              {variable === 'temperature' ? 'Hottest year' : variable === 'precipitation' ? 'Driest year' : 'Driest soil'}: {years[recordIndex]} (
+              {variable === 'temperature'
+                ? `${values[recordIndex].toFixed(1)} °C`
+                : variable === 'precipitation'
+                  ? `${Math.round(values[recordIndex])} mm`
+                  : values[recordIndex].toFixed(2)}
+              )
+            </p>
+          )}
         </>
       )}
 

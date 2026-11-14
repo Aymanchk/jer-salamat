@@ -9,6 +9,7 @@ import {
   RotateCcw,
   Stethoscope,
   ThermometerSun,
+  Trophy,
   CloudRain,
   Droplets,
   Minus,
@@ -29,7 +30,7 @@ import { EmptyState } from '@/components/ui/States'
 import { Switch } from '@/components/ui/Switch'
 import { Term } from '@/components/ui/Term'
 import { answerLabel, QUESTIONS } from '@/content/questions'
-import { recommend, takeaways, type ClimateVariable, type RotationData } from '@/core'
+import { recommend, takeaways, temperatureChange, type ClimateVariable, type RotationData } from '@/core'
 import ROTATIONS from '@/data/rotations.json'
 import { useClimate } from '@/hooks/useClimate'
 import { cx, formatCoords } from '@/lib'
@@ -43,7 +44,7 @@ const CHART_SUMMARY: Record<ClimateVariable, string> = {
   soilWetness: 'How wet the soil is where roots grow, yearly average.',
 }
 
-const TAKEAWAY_ICON = { temperature: ThermometerSun, precipitation: CloudRain, soilWetness: Droplets }
+const TAKEAWAY_ICON = { temperature: ThermometerSun, precipitation: CloudRain, soilWetness: Droplets, record: Trophy }
 const DIRECTION_ICON = { up: TrendingUp, down: TrendingDown, flat: Minus }
 
 export default function ResultsPage() {
@@ -97,7 +98,8 @@ export default function ResultsPage() {
 
   const t = climate?.series.temperature.points ?? []
   const p = climate?.series.precipitation.points ?? []
-  const tChange = climate ? climate.trends.temperature.slopePerDecade * ((t[t.length - 1]?.year - t[0]?.year) / 10) : 0
+  const change = climate ? temperatureChange(climate) : null
+  const tChange = change?.trend ?? 0
   const pMean = p.length ? p.reduce((s, x) => s + x.value, 0) / p.length : 0
   const climateReady = status === 'ready' || status === 'cached'
 
@@ -212,7 +214,16 @@ export default function ResultsPage() {
                     <p className="mt-1 font-display text-4xl font-semibold tabular-nums text-data-temp">
                       <CountUp value={tChange} decimals={1} prefix={tChange > 0 ? '+' : ''} suffix=" °C" />
                     </p>
-                    <p className="text-sm text-text-muted">from the trend line, 40 years</p>
+                    <p className="text-sm text-text-muted">
+                      along the 40-year trend line
+                      {change && (
+                        <>
+                          {' '}
+                          ({change.decades > 0 ? '+' : '−'}
+                          {Math.abs(change.decades).toFixed(2)} °C, {change.firstSpan} vs {change.lastSpan} average)
+                        </>
+                      )}
+                    </p>
                   </div>
                   <div className="rounded-card border border-border bg-surface p-4">
                     <p className="text-sm text-text-muted">Average rain and snow</p>

@@ -3,7 +3,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Container } from '@/components/layout/Page'
 import { Badge } from '@/components/ui/Badge'
 import { CountUp } from '@/components/ui/CountUp'
-import { parsePower, type ClimateData, type PowerResponse } from '@/core'
+import { parsePower, temperatureChange, type ClimateData, type PowerResponse } from '@/core'
 import { useCanRender3D } from '@/hooks/useDeviceCapability'
 import { cx } from '@/lib'
 
@@ -21,11 +21,10 @@ interface Stat {
 }
 
 function statsOf(data: ClimateData): Stat[] {
-  const t = data.series.temperature.points
   const p = data.series.precipitation.points
   const s = data.series.soilWetness.points
-  const span = (t[t.length - 1].year - t[0].year) / 10
-  const tChange = data.trends.temperature.slopePerDecade * span
+  const change = temperatureChange(data)
+  const tChange = change.trend
   const pMean = p.reduce((a, x) => a + x.value, 0) / p.length
   const pMin = Math.min(...p.map((x) => x.value))
   const sMean = s.reduce((a, x) => a + x.value, 0) / s.length
@@ -37,7 +36,7 @@ function statsOf(data: ClimateData): Stat[] {
       decimals: 1,
       prefix: tChange > 0 ? '+' : '',
       suffix: ' °C',
-      note: 'Change along the 40-year trend line of yearly mean air temperature.',
+      note: `Along the 40-year trend line of yearly mean air temperature. Comparing ${change.firstSpan} with ${change.lastSpan} averages: ${change.decades > 0 ? '+' : '−'}${Math.abs(change.decades).toFixed(2)} °C.`,
       tone: 'text-data-temp',
     },
     {
