@@ -65,7 +65,7 @@ function buildFieldGrid(): BufferGeometry {
   return geo
 }
 
-const TOKENS = ['--color-accent', '--color-bg'] as const
+const TOKENS = ['--globe-highlight'] as const
 
 function Scene() {
   const tokens = useTokens(TOKENS)
@@ -94,7 +94,8 @@ function Scene() {
 
   return (
     <>
-      <fog attach="fog" args={[tokens['--color-bg'], 14, 42]} />
+      {/* This scene is always at night, in both themes. */}
+      <fog attach="fog" args={['#070b0a', 14, 42]} />
       <hemisphereLight args={[new Color('#2ee6b8'), new Color('#070b0a'), 0.55]} />
       <directionalLight position={[-10, 5, 2]} intensity={2.2} color="#c6ff3d" />
       <directionalLight position={[10, 3, -6]} intensity={0.6} color="#3dd8ff" />
@@ -106,12 +107,12 @@ function Scene() {
         <meshBasicMaterial color="#2ee6b8" wireframe transparent opacity={0.09} />
       </mesh>
       <lineSegments geometry={grid}>
-        <lineBasicMaterial color={tokens['--color-accent']} transparent opacity={0.22} />
+        <lineBasicMaterial color={tokens['--globe-highlight']} transparent opacity={0.22} />
       </lineSegments>
       {/* "Your field" */}
       <mesh ref={field} position={[0.75, 0.16, 6.6]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[1.5, 1.2]} />
-        <meshBasicMaterial color={tokens['--color-accent']} transparent opacity={0.5} />
+        <meshBasicMaterial color={tokens['--globe-highlight']} transparent opacity={0.5} />
       </mesh>
     </>
   )

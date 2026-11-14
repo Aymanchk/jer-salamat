@@ -137,7 +137,7 @@ function OrbitStory({ onHow }: { onHow: () => void }) {
   }, [])
 
   return (
-    <section ref={ref} aria-labelledby="hero-title" className="relative -mt-header h-[340vh]">
+    <section ref={ref} aria-labelledby="hero-title" data-theme="dark" className="relative -mt-header h-[340vh] bg-bg text-text">
       <div className="sticky top-0 h-[100dvh] overflow-hidden">
         {/* 3D Earth */}
         <div aria-hidden="true" className={cx('absolute inset-0 transition-opacity duration-slow', ready ? 'opacity-100' : 'opacity-0')}>

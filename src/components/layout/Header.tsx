@@ -1,6 +1,6 @@
 import { Menu, Moon, Sprout, Sun, X } from 'lucide-react'
 import { useState } from 'react'
-import { Link, NavLink } from 'react-router'
+import { Link, NavLink, useLocation } from 'react-router'
 import { cx } from '@/lib'
 import { useTheme } from '@/state/theme'
 
@@ -20,9 +20,11 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 export function Header() {
   const { theme, toggle } = useTheme()
   const [open, setOpen] = useState(false)
+  // The landing opens on a night scene, so its header stays dark in both themes.
+  const onLanding = useLocation().pathname === '/'
 
   return (
-    <header className="glass sticky top-0 z-header border-b border-glass text-text">
+    <header data-theme={onLanding ? 'dark' : undefined} className="glass sticky top-0 z-header border-b border-glass text-text print:hidden">
       <div className="mx-auto flex h-header max-w-content items-center gap-2 px-gutter">
         <Link to="/" className="mr-auto inline-flex min-h-tap items-center gap-2 text-lg font-extrabold text-heading no-underline">
           <span aria-hidden="true" className="neon-chip inline-flex h-8 w-8 items-center justify-center rounded-pill text-on-accent">

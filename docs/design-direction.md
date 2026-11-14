@@ -13,7 +13,7 @@
 - 30% field greens and teal surfaces: `#0F2A23`, `#15392F`, `#1E5145`.
 - 10% signature neon, chlorophyll lime `#C6FF3D` with glow: primary action, the selected pin, key numbers. Never body text backgrounds.
 - Data: temperature `#FF7A45`, precipitation `#3DD8FF`, soil wetness `#2EE6B8`. Each chart also has its own form (line / bars / area), so colour is never the only signal.
-- Daylight theme for outdoors: same hues, no glow, accent darkened to `#4D7C0F` for WCAG AA.
+- Daylight theme for outdoors: same hues, no glow, accent darkened to `#4D7C0F` for WCAG AA. The space scenes (orbit, descent, valley) stay at night in both themes; everything else follows the theme.
 
 **Materials and light.** Matte night surfaces, one rim light (the atmosphere), emissive data. No glossy plastic, no stock gradients, no glassy SaaS cards stacked in rows. Glass is used only where content floats over a map or a scene (stepper, search bar).
 
