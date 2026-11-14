@@ -11,7 +11,13 @@ export default {
     colors: {
       transparent: 'transparent',
       current: 'currentColor',
-      bg: 'var(--color-bg)',
+      bg: {
+        DEFAULT: 'var(--color-bg)',
+        2: 'var(--color-bg-2)',
+      },
+      glass: 'var(--glass-border)',
+      better: 'var(--color-better)',
+      worse: 'var(--color-worse)',
       surface: {
         DEFAULT: 'var(--color-surface)',
         muted: 'var(--color-surface-muted)',
@@ -83,6 +89,8 @@ export default {
       none: 'none',
       card: 'var(--shadow-card)',
       raised: 'var(--shadow-raised)',
+      glow: 'var(--glow-accent)',
+      'glow-soft': 'var(--glow-soft)',
     },
     extend: {
       spacing: {
@@ -91,6 +99,7 @@ export default {
         tap: 'var(--size-tap)',
         'tap-lg': 'var(--size-tap-lg)',
         header: 'var(--size-header)',
+        stepper: 'var(--size-stepper)',
       },
       maxWidth: {
         content: 'var(--size-content)',

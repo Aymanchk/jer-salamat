@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/States'
 import { DATA_SOURCES, LIMITATIONS, TEAM } from '@/content/about'
+import { GLOSSARY } from '@/content/glossary'
 
 export default function AboutPage() {
   return (
@@ -41,6 +42,20 @@ export default function AboutPage() {
             </Card>
           ))}
         </ul>
+      </Section>
+
+      <Section labelledBy="about-glossary">
+        <SectionHeading id="about-glossary" title="Glossary">
+          The technical words in this app, in plain English.
+        </SectionHeading>
+        <dl className="grid gap-4 md:grid-cols-2">
+          {Object.entries(GLOSSARY).map(([id, entry]) => (
+            <Card key={id} id={`term-${id}`}>
+              <dt className="text-lg font-bold text-heading">{entry.term}</dt>
+              <dd className="mt-1 text-text-muted">{entry.meaning}</dd>
+            </Card>
+          ))}
+        </dl>
       </Section>
 
       <Section labelledBy="about-limits">

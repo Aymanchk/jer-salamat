@@ -11,7 +11,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null)
 const STORAGE_KEY = 'js-theme'
 
 function readInitial(): Theme {
-  return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light'
+  return document.documentElement.dataset.theme === 'light' ? 'light' : 'dark'
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {

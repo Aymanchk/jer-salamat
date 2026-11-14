@@ -6,14 +6,14 @@ type Variant = 'primary' | 'secondary' | 'outline' | 'ghost'
 type Size = 'md' | 'lg'
 
 const BASE =
-  'inline-flex items-center justify-center gap-2 rounded-control font-bold text-base no-underline ' +
-  'transition-[background-color,border-color,transform] duration-fast ease-token ' +
-  'active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100'
+  'inline-flex items-center justify-center gap-2 rounded-pill font-bold text-base no-underline ' +
+  'transition-[background-color,border-color,transform,box-shadow] duration-fast ease-token ' +
+  'active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none disabled:active:scale-100'
 
 const VARIANTS: Record<Variant, string> = {
   // Gold: the single most important action on a screen.
-  primary: 'bg-accent text-on-accent hover:bg-accent-hover shadow-card',
-  secondary: 'bg-primary text-on-primary hover:bg-primary-strong',
+  primary: 'neon-btn bg-accent text-on-accent hover:bg-accent-hover',
+  secondary: 'bg-primary-strong text-on-primary hover:bg-primary-soft border border-border',
   outline: 'border-2 border-border-strong bg-surface text-text hover:border-selected hover:bg-primary-soft',
   ghost: 'text-heading hover:bg-primary-soft',
 }

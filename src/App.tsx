@@ -1,6 +1,7 @@
-import { AnimatePresence, domAnimation, LazyMotion, m, MotionConfig } from 'motion/react'
+import { domAnimation, LazyMotion, m, MotionConfig } from 'motion/react'
 import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router'
+import { FLOW_ROUTES, FlowStepper } from '@/components/layout/FlowStepper'
 import { Footer } from '@/components/layout/Footer'
 import { Header } from '@/components/layout/Header'
 import { LoadingSkeleton } from '@/components/ui/LoadingSkeleton'
@@ -10,10 +11,14 @@ import { ThemeProvider } from '@/state/theme'
 
 // The landing page ships in the first bundle. Heavier pages
 // (map, charts) load only when the farmer reaches them.
-const FieldPage = lazy(() => import('@/pages/FieldPage'))
-const QuestionsPage = lazy(() => import('@/pages/QuestionsPage'))
-const ResultsPage = lazy(() => import('@/pages/ResultsPage'))
-const AboutPage = lazy(() => import('@/pages/AboutPage'))
+const loadField = () => import('@/pages/FieldPage')
+const loadQuestions = () => import('@/pages/QuestionsPage')
+const loadResults = () => import('@/pages/ResultsPage')
+const loadAbout = () => import('@/pages/AboutPage')
+const FieldPage = lazy(loadField)
+const QuestionsPage = lazy(loadQuestions)
+const ResultsPage = lazy(loadResults)
+const AboutPage = lazy(loadAbout)
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
 
 /** Pages that fill the screen themselves and do not show the footer. */
@@ -23,9 +28,25 @@ function Shell() {
   const location = useLocation()
   const fullScreen = FULL_SCREEN.includes(location.pathname)
 
+  const showStepper = FLOW_ROUTES.includes(location.pathname)
+
   useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [location.pathname])
+    if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView()
+    else window.scrollTo(0, 0)
+  }, [location.pathname, location.hash])
+
+  // Fetch the other pages once the browser is idle, so moving between steps never shows a blank screen.
+  useEffect(() => {
+    const preload = () => {
+      void loadField().then(loadQuestions).then(loadResults).then(loadAbout)
+    }
+    if ('requestIdleCallback' in window) {
+      const id = requestIdleCallback(preload, { timeout: 3000 })
+      return () => cancelIdleCallback(id)
+    }
+    const id = setTimeout(preload, 1500)
+    return () => clearTimeout(id)
+  }, [])
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -36,15 +57,15 @@ function Shell() {
         Skip to content
       </a>
       <Header />
+      {showStepper && <FlowStepper />}
       <main id="main" tabIndex={-1} className="flex flex-1 flex-col outline-none">
-        <AnimatePresence mode="wait" initial={false}>
-          <m.div
+        {/* Enter-only transition: the new page is visible at once (no exit wait, no long fade). */}
+        <m.div
             key={location.pathname}
             className="flex flex-1 flex-col"
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0.6, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2, ease: [0.2, 0.7, 0.2, 1] }}
+            transition={{ duration: 0.18, ease: [0.2, 0.7, 0.2, 1] }}
           >
             <Suspense fallback={<LoadingSkeleton variant="page" label="Loading page" />}>
               <Routes location={location}>
@@ -57,7 +78,6 @@ function Shell() {
               </Routes>
             </Suspense>
           </m.div>
-        </AnimatePresence>
       </main>
       {!fullScreen && <Footer />}
     </div>

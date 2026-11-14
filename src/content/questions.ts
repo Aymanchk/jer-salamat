@@ -6,7 +6,6 @@ import {
   CloudRain,
   Droplet,
   Droplets,
-  Ellipsis,
   Fuel,
   Grip,
   Layers,
@@ -29,6 +28,8 @@ export interface Question {
   id: QuestionId
   title: string
   help: string
+  /** Why we ask: one plain sentence under the question. */
+  why: string
   /** Short label used in the answers summary. */
   short: string
   options: QuestionOption[]
@@ -43,24 +44,24 @@ export const UNKNOWN_OPTION: QuestionOption = {
 
 export const QUESTIONS: Question[] = [
   {
-    id: 'previousCrop',
-    title: 'What grew on this field last season?',
-    help: 'The last crop changes what the soil needs next.',
-    short: 'Last crop',
+    id: 'currentRotation',
+    title: 'What do you usually grow here over 2–3 years?',
+    help: 'Pick the order closest to what you do now.',
+    why: 'We compare every new plan with what you grow today, so you see what would change.',
+    short: 'Now growing',
     options: [
-      { value: 'wheat', label: 'Wheat', icon: Wheat },
-      { value: 'barley', label: 'Barley', icon: Wheat },
-      { value: 'maize', label: 'Maize (corn)', icon: Sprout },
-      { value: 'sugar-beet', label: 'Sugar beet', icon: Carrot },
-      { value: 'alfalfa', label: 'Alfalfa', icon: Clover },
-      { value: 'vegetables', label: 'Potato or vegetables', icon: Carrot },
-      { value: 'other', label: 'Other crop', icon: Ellipsis },
+      { value: 'wheat-every-year', label: 'Wheat every year', hint: 'Wheat → wheat → wheat', icon: Wheat },
+      { value: 'wheat-maize', label: 'Wheat and maize in turn', hint: 'Wheat → maize → wheat', icon: Sprout },
+      { value: 'beet-wheat-maize', label: 'Sugar beet, wheat, maize', hint: 'Beet → wheat → maize', icon: Carrot },
+      { value: 'alfalfa-wheat', label: 'Alfalfa, then wheat', hint: 'Alfalfa 2 years → wheat', icon: Clover },
+      { value: 'vegetables-wheat', label: 'Potato or vegetables, then wheat', hint: 'Vegetables → wheat', icon: Carrot },
     ],
   },
   {
     id: 'soilType',
     title: 'What is the soil like?',
     help: 'Think about how it feels in your hand after rain.',
+    why: 'Sandy soil loses water fast; clay holds it. This changes which crops cope with dry summers.',
     short: 'Soil',
     options: [
       { value: 'light', label: 'Light, sandy', hint: 'Water drains fast', icon: Grip },
@@ -73,6 +74,7 @@ export const QUESTIONS: Question[] = [
     id: 'irrigation',
     title: 'Can you irrigate this field?',
     help: 'Choose the main water source.',
+    why: 'Thirsty crops like maize and sugar beet need reliable irrigation in the Chuy Valley.',
     short: 'Irrigation',
     options: [
       { value: 'canal', label: 'Yes, from a canal', icon: Waves },
@@ -84,6 +86,7 @@ export const QUESTIONS: Question[] = [
     id: 'waterLimited',
     title: 'Is water short in summer?',
     help: 'For example, the canal runs low or your turn comes late.',
+    why: 'If water is short, we put crops that need less water higher in the list.',
     short: 'Water short',
     options: [
       { value: 'often', label: 'Often', hint: 'Most summers', icon: Droplet },
@@ -94,7 +97,8 @@ export const QUESTIONS: Question[] = [
   {
     id: 'priority',
     title: 'What matters most to you?',
-    help: 'We show all three plans. This one comes first.',
+    help: 'We show all plans. The one that fits this goal comes first.',
+    why: 'There is no single best plan. Your goal decides which trade-off is right for you.',
     short: 'Priority',
     options: [
       { value: 'water', label: 'Save water', icon: Droplets },

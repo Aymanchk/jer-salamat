@@ -1,64 +1,77 @@
 /*
- * Jer Salamat design tokens.
+ * Jer Salamat design tokens: "agri-tech at night".
  * Single source of truth for colour, type, spacing, radius, shadow and motion.
  * Components must use these (through Tailwind classes), never raw values.
  *
  * Colour follows the 60-30-10 rule:
- *   60% surfaces  — warm neutral background and white cards
- *   30% secondary — deep field green: header, nav, headings, selected states
- *   10% accent    — wheat gold: primary buttons, key numbers, highlights only
+ *   60% background — deep night green-black (dark) / cool off-white (light)
+ *   30% surfaces   — deep green-teal cards, header and secondary areas
+ *   10% accent     — neon lime: primary buttons, the selected pin, key numbers
  * Data colours are a separate family used only inside charts.
+ * Dark is the default. Light keeps the same hues with no glow, for use in the sun.
  */
 
-:root {
-  /* ---- 60% surfaces ---- */
-  --color-bg: #f7f4ec;
-  --color-surface: #ffffff;
-  --color-surface-muted: #efebdf;
-  --color-border: #ddd7c7;
-  --color-border-strong: #857f6b; /* 3.6:1 on bg, for control outlines */
-  --color-text: #1c2520; /* 14.6:1 on bg */
-  --color-text-muted: #55605a; /* 6.0:1 on bg */
+:root,
+[data-theme='dark'] {
+  /* ---- 60% background ---- */
+  --color-bg: #0b1210;
+  --color-bg-2: #0e1714;
+  --color-surface: #10231d;
+  --color-surface-muted: #12332b;
+  --color-border: #1e4338;
+  --color-border-strong: #4f7a6c; /* 3.4:1 on bg, for control outlines */
+  --color-text: #e9f5ef; /* 16:1 on bg */
+  --color-text-muted: #a3bfb4; /* 9:1 on bg, 7.6:1 on surface */
 
-  /* ---- 30% secondary: field green ---- */
-  --color-primary: #1f4d3a;
-  --color-primary-strong: #163a2b;
-  --color-primary-soft: #e3ede7;
-  --color-on-primary: #f7f4ec; /* 9.0:1 on primary */
-  --color-on-primary-muted: #c5d6cc; /* 6.4:1 on primary */
-  --color-heading: #1f4d3a;
-  --color-selected: #1f4d3a;
+  /* ---- 30% secondary: green-teal ---- */
+  --color-primary: #12332b;
+  --color-primary-strong: #1c4a3e;
+  --color-primary-soft: #173c33;
+  --color-on-primary: #e9f5ef;
+  --color-on-primary-muted: #b6d1c6;
+  --color-heading: #f2fbf6;
+  --color-selected: #b6ff3b;
 
-  /* ---- 10% accent: wheat gold ---- */
-  --color-accent: #e3a13b;
-  --color-accent-hover: #d4902a;
-  --color-on-accent: #1c2a22; /* 6.6:1 on accent */
-  --color-accent-text: #855600; /* gold for text and numbers, 5.9:1 on white */
-  --color-accent-soft: #fbf0da;
+  /* ---- 10% accent: neon lime ---- */
+  --color-accent: #b6ff3b;
+  --color-accent-hover: #c8ff6a;
+  --color-on-accent: #0b1210; /* 16:1 on accent */
+  --color-accent-text: #b6ff3b; /* 14:1 on bg */
+  --color-accent-soft: #1f3314;
 
   /* ---- status ---- */
-  --color-danger: #b42318;
-  --color-danger-soft: #fdecea;
-  --color-focus: #1f4d3a;
+  --color-danger: #ff7a70;
+  --color-danger-soft: #3b1a17;
+  --color-better: #b6ff3b;
+  --color-worse: #ff9b6a;
+  --color-focus: #b6ff3b;
 
-  /* ---- data colours (charts only) ----
-     Each is AA (>= 4.5:1) on the card surface. Charts also differ by
-     shape (line / bars / area), so colour is never the only signal. */
-  --data-temp: #c2410c;
-  --data-temp-soft: #fbe3d6;
-  --data-precip: #1d4ed8;
-  --data-precip-soft: #dbe6fb;
-  --data-soil: #0f766e;
-  --data-soil-soft: #d5ecea;
-  --data-trend: #1c2520;
-  --data-grid: #e6e1d3;
-  --data-scenario: #7a2e0e;
+  /* ---- glass and glow ---- */
+  --glass-bg: rgb(16 35 29 / 0.72);
+  --glass-border: rgb(182 255 59 / 0.14);
+  --glow-accent: 0 0 0 1px rgb(182 255 59 / 0.5), 0 0 18px rgb(182 255 59 / 0.45), 0 0 42px rgb(182 255 59 / 0.18);
+  --glow-soft: 0 0 24px rgb(182 255 59 / 0.18);
+  --gradient-neon: linear-gradient(120deg, #b6ff3b, #2dd4bf 45%, #22d3ee);
+  --hero-aurora: radial-gradient(60% 50% at 75% 30%, rgb(45 212 191 / 0.16), transparent 70%),
+    radial-gradient(45% 40% at 15% 10%, rgb(182 255 59 / 0.1), transparent 70%);
+
+  /* ---- data colours (charts only) ---- */
+  --data-temp: #ff8a3d;
+  --data-temp-soft: rgb(255 138 61 / 0.16);
+  --data-precip: #22d3ee;
+  --data-precip-soft: rgb(34 211 238 / 0.16);
+  --data-soil: #2dd4bf;
+  --data-soil-soft: rgb(45 212 191 / 0.18);
+  --data-trend: #e9f5ef;
+  --data-grid: #1b3a31;
+  --data-scenario: #ffd166;
 
   /* ---- 3D globe ---- */
-  --globe-ocean: #1f4d3a;
-  --globe-line: #b9d3c5;
-  --globe-grid: #2f6650;
-  --globe-highlight: #e3a13b;
+  --globe-ocean: #0c2620;
+  --globe-line: #5eead4;
+  --globe-grid: #1c4a3e;
+  --globe-highlight: #b6ff3b;
+  --globe-atmosphere: rgb(45 212 191 / 0.35);
 
   /* ---- typography ---- */
   --font-family-sans: 'Manrope Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -88,28 +101,29 @@
   --size-tap: 3rem; /* 48px minimum tap target */
   --size-tap-lg: 3.5rem;
   --size-header: 3.5rem;
+  --size-stepper: 3.25rem;
   --size-content: 72rem;
 
   /* ---- radius ---- */
-  --radius-control: 0.5rem;
-  --radius-card: 1rem;
+  --radius-control: 0.75rem;
+  --radius-card: 1.25rem;
   --radius-pill: 999px;
 
   /* ---- shadow ---- */
-  --shadow-card: 0 1px 2px rgb(28 37 32 / 0.06), 0 1px 3px rgb(28 37 32 / 0.08);
-  --shadow-raised: 0 4px 10px rgb(28 37 32 / 0.08), 0 12px 28px rgb(28 37 32 / 0.1);
+  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 8px 24px rgb(0 0 0 / 0.35);
+  --shadow-raised: 0 12px 40px rgb(0 0 0 / 0.55);
 
   /* ---- motion ---- */
   --motion-fast: 150ms;
-  --motion-base: 250ms;
-  --motion-slow: 400ms;
+  --motion-base: 220ms;
+  --motion-slow: 300ms;
   --motion-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 
   /* ---- layers (Leaflet uses up to 1000) ---- */
   --z-header: 1100;
   --z-popover: 1200;
 
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 @media (min-width: 640px) {
@@ -119,51 +133,62 @@
   }
 }
 
-/* Dark theme: same 60-30-10 proportions. */
-[data-theme='dark'] {
-  --color-bg: #0f1512;
-  --color-surface: #18211c;
-  --color-surface-muted: #1f2a24;
-  --color-border: #2c3a32;
-  --color-border-strong: #6f8176;
-  --color-text: #ecefe9;
-  --color-text-muted: #a9b5ad;
+/* Light theme for bright sun: same hues, no glow, accent darkened for AA. */
+[data-theme='light'] {
+  --color-bg: #f3f7f4;
+  --color-bg-2: #e9f1ec;
+  --color-surface: #ffffff;
+  --color-surface-muted: #e6efe9;
+  --color-border: #cddcd3;
+  --color-border-strong: #6b8378; /* 3.9:1 on bg */
+  --color-text: #0b1a14; /* 17:1 */
+  --color-text-muted: #45594f; /* 7:1 */
 
-  --color-primary: #1f4d3a;
-  --color-primary-strong: #2a6850;
-  --color-primary-soft: #1b382c;
-  --color-on-primary: #f1f5ee;
-  --color-on-primary-muted: #c5d6cc;
-  --color-heading: #a7d7bf;
-  --color-selected: #a7d7bf;
+  --color-primary: #12332b;
+  --color-primary-strong: #1c4a3e;
+  --color-primary-soft: #dcede4;
+  --color-on-primary: #f3f7f4;
+  --color-on-primary-muted: #c2d8cd;
+  --color-heading: #12332b;
+  --color-selected: #3f6212;
 
-  --color-accent: #ebb04e;
-  --color-accent-hover: #f2bf68;
-  --color-on-accent: #1c2a22;
-  --color-accent-text: #ebb04e;
-  --color-accent-soft: #3a2e14;
+  --color-accent: #4d7c0f; /* white text 5.1:1 */
+  --color-accent-hover: #3f6212;
+  --color-on-accent: #ffffff;
+  --color-accent-text: #3f6212; /* 7.4:1 on white */
+  --color-accent-soft: #ecf7d9;
 
-  --color-danger: #f97066;
-  --color-danger-soft: #3b1a17;
-  --color-focus: #ebb04e;
+  --color-danger: #b42318;
+  --color-danger-soft: #fdecea;
+  --color-better: #3f6212;
+  --color-worse: #b54708;
+  --color-focus: #12332b;
 
-  --data-temp: #fb923c;
-  --data-temp-soft: #43261a;
-  --data-precip: #60a5fa;
-  --data-precip-soft: #1a2c47;
-  --data-soil: #2dd4bf;
-  --data-soil-soft: #123a36;
-  --data-trend: #ecefe9;
-  --data-grid: #2c3a32;
-  --data-scenario: #fdba74;
+  --glass-bg: rgb(255 255 255 / 0.82);
+  --glass-border: rgb(18 51 43 / 0.12);
+  --glow-accent: 0 1px 2px rgb(11 26 20 / 0.2);
+  --glow-soft: none;
+  --gradient-neon: linear-gradient(120deg, #4d7c0f, #0f766e 50%, #0e7490);
+  --hero-aurora: radial-gradient(60% 50% at 75% 30%, rgb(15 118 110 / 0.08), transparent 70%);
 
-  --globe-ocean: #1f4d3a;
+  --data-temp: #c2410c;
+  --data-temp-soft: #fbe3d6;
+  --data-precip: #0e7490;
+  --data-precip-soft: #d6eff5;
+  --data-soil: #0f766e;
+  --data-soil-soft: #d5ecea;
+  --data-trend: #0b1a14;
+  --data-grid: #e1ebe5;
+  --data-scenario: #9a3412;
+
+  --globe-ocean: #12332b;
   --globe-line: #b9d3c5;
-  --globe-grid: #2f6650;
-  --globe-highlight: #ebb04e;
+  --globe-grid: #1c4a3e;
+  --globe-highlight: #b6ff3b;
+  --globe-atmosphere: rgb(15 118 110 / 0.25);
 
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
-  --shadow-raised: 0 8px 24px rgb(0 0 0 / 0.5);
+  --shadow-card: 0 1px 2px rgb(11 26 20 / 0.06), 0 2px 8px rgb(11 26 20 / 0.06);
+  --shadow-raised: 0 8px 28px rgb(11 26 20 / 0.14);
 
-  color-scheme: dark;
+  color-scheme: light;
 }

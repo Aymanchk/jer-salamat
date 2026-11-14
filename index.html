@@ -8,18 +8,17 @@
       name="description"
       content="Jer Salamat helps farmers in the Chuy Valley choose a smarter crop rotation with 40 years of NASA POWER climate data."
     />
-    <meta name="theme-color" content="#1F4D3A" />
+    <meta name="theme-color" content="#0B1210" />
     <title>Jer Salamat — smarter crop rotation with NASA climate data</title>
     <script>
       // Set the theme before first paint to avoid a flash.
       try {
         var t = localStorage.getItem('js-theme')
-        if (t !== 'light' && t !== 'dark') {
-          t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-        }
+        // Dark is the default look; light is one tap away for bright sun.
+        if (t !== 'light' && t !== 'dark') t = 'dark'
         document.documentElement.dataset.theme = t
       } catch (e) {
-        document.documentElement.dataset.theme = 'light'
+        document.documentElement.dataset.theme = 'dark'
       }
     </script>
   </head>

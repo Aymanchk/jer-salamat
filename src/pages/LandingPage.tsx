@@ -2,11 +2,11 @@ import {
   ArrowRight,
   ChartLine,
   ClipboardList,
-  Droplets,
   MapPin,
   Repeat,
   Satellite,
   ShieldCheck,
+  Sprout,
   type LucideIcon,
 } from 'lucide-react'
 import { m } from 'motion/react'
@@ -26,8 +26,8 @@ const BENEFITS: Array<{ icon: LucideIcon; title: string; text: string }> = [
   },
   {
     icon: Repeat,
-    title: '3 plans to compare',
-    text: 'Water saving, soil health or income. See what each plan gives and what it costs.',
+    title: 'A plan, not just charts',
+    text: 'Water saving, soil health or income, each compared with what you grow today. Plus 3 clear next steps.',
   },
   {
     icon: ShieldCheck,
@@ -37,10 +37,10 @@ const BENEFITS: Array<{ icon: LucideIcon; title: string; text: string }> = [
 ]
 
 const STEPS: Array<{ icon: LucideIcon; title: string; text: string }> = [
-  { icon: MapPin, title: 'Pick your field', text: 'Tap the map to place a pin.' },
-  { icon: ClipboardList, title: 'Answer 5 questions', text: 'Simple questions. "I don\'t know" is fine.' },
-  { icon: ChartLine, title: 'See your climate', text: 'Charts from 1986 to 2025.' },
-  { icon: Droplets, title: 'Compare 3 plans', text: 'Choose the crop rotation that fits you.' },
+  { icon: MapPin, title: 'Pick field', text: 'Search your village or tap the map.' },
+  { icon: ClipboardList, title: 'Answer 5 questions', text: '"I don\'t know" is a fine answer.' },
+  { icon: ChartLine, title: 'See climate', text: '40 years of NASA data for your area.' },
+  { icon: Sprout, title: 'Get your plan', text: 'What to plant, and what to do next.' },
 ]
 
 export default function LandingPage() {
@@ -55,15 +55,16 @@ export default function LandingPage() {
             transition={{ duration: 0.4, ease: [0.2, 0.7, 0.2, 1] }}
             className="order-2 lg:order-1"
           >
-            <p className="mb-3 text-sm font-bold uppercase tracking-wider text-accent-text">
-              For farmers in the Chuy Valley
+            <p className="mb-3 inline-flex items-center gap-2 rounded-pill border border-glass bg-surface px-3 py-1 text-sm font-bold text-accent-text">
+              <Satellite size={16} aria-hidden="true" />
+              For farmers in the Chuy Valley · NASA data
             </p>
             <h1 id="hero-title" className="text-3xl sm:text-4xl lg:text-5xl">
-              Choose a smarter crop rotation with 40 years of NASA climate data
+              Climate in the Chuy Valley is changing.{' '}
+              <span className="text-gradient">Find out which crops to plant next</span> to save water and keep your soil
+              healthy.
             </h1>
-            <p className="mt-4 max-w-xl text-lg text-text-muted">
-              Pick your field, answer 5 short questions, and compare 3 rotation plans. Free. No sign-up.
-            </p>
+            <p className="mt-4 max-w-xl text-lg text-text-muted">Free. No sign-up. About 2 minutes.</p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Button to="/field" size="lg" iconRight={<ArrowRight size={22} />} className="w-full sm:w-auto">
                 Check my field
@@ -72,10 +73,34 @@ export default function LandingPage() {
                 How we use data
               </Button>
             </div>
-            <p className="mt-4 text-sm text-text-muted">Data: NASA POWER · Takes about 2 minutes</p>
+            <p className="mt-4 text-sm text-text-muted">Climate data: NASA POWER</p>
           </m.div>
 
-          <EarthHero className="order-1 max-w-[17rem] sm:max-w-sm lg:order-2 lg:max-w-[30rem]" />
+          <EarthHero className="order-1 max-w-[15rem] sm:max-w-sm lg:order-2 lg:max-w-[30rem]" />
+        </Container>
+
+        {/* The 4 steps, right under the hero, so a first-time visitor knows what will happen. */}
+        <Container className="pt-8 sm:pt-12">
+          <h2 className="sr-only">How it works</h2>
+          <ol className="gradient-border grid grid-cols-2 gap-px overflow-hidden rounded-card bg-border shadow-card lg:grid-cols-4">
+            {STEPS.map((step, i) => (
+              <li key={step.title} className="flex flex-col gap-3 bg-surface p-4 sm:flex-row sm:items-start sm:p-5">
+                <span aria-hidden="true" className="relative inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-card bg-primary-soft text-accent-text">
+                  <step.icon size={26} />
+                  <span className="neon-chip absolute -right-1.5 -top-1.5 inline-flex h-6 w-6 items-center justify-center rounded-pill text-sm font-extrabold text-on-accent">
+                    {i + 1}
+                  </span>
+                </span>
+                <div>
+                  <h3 className="text-lg leading-snug">
+                    <span className="sr-only">Step {i + 1}: </span>
+                    {step.title}
+                  </h3>
+                  <p className="mt-0.5 text-text-muted">{step.text}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
         </Container>
       </section>
 
@@ -86,8 +111,8 @@ export default function LandingPage() {
           {BENEFITS.map((item, i) => (
             <li key={item.title}>
               <Reveal delay={i * 0.06} className="h-full">
-                <Card padding="lg" className="h-full">
-                  <span aria-hidden="true" className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-control bg-primary-soft text-heading">
+                <Card padding="lg" interactive className="h-full">
+                  <span aria-hidden="true" className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-control bg-primary-soft text-accent-text">
                     <item.icon size={24} />
                   </span>
                   <h3 className="text-xl">{item.title}</h3>
@@ -99,34 +124,6 @@ export default function LandingPage() {
         </ul>
       </Section>
 
-      {/* How it works */}
-      <Section labelledBy="how-title">
-        <SectionHeading id="how-title" title="How it works">
-          Four steps. About two minutes.
-        </SectionHeading>
-        <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {STEPS.map((step, i) => (
-            <li key={step.title}>
-              <Reveal delay={i * 0.06} className="h-full">
-                <div className="flex h-full gap-4 rounded-card border border-border bg-surface p-4 lg:flex-col lg:p-5">
-                  <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-pill bg-primary text-xl font-extrabold text-on-primary">
-                    <span className="sr-only">Step </span>
-                    {i + 1}
-                  </span>
-                  <div>
-                    <h3 className="flex items-center gap-2 text-lg">
-                      <step.icon size={20} aria-hidden="true" className="shrink-0" />
-                      {step.title}
-                    </h3>
-                    <p className="mt-1 text-text-muted">{step.text}</p>
-                  </div>
-                </div>
-              </Reveal>
-            </li>
-          ))}
-        </ol>
-      </Section>
-
       {/* Data sources */}
       <Section labelledBy="sources-title">
         <SectionHeading id="sources-title" title="Where the data comes from">
@@ -136,7 +133,7 @@ export default function LandingPage() {
           {DATA_SOURCES.map((source, i) => (
             <li key={source.name}>
               <Reveal delay={i * 0.06} className="h-full">
-                <Card className="h-full">
+                <Card interactive className="h-full">
                   <h3 className="text-lg">{source.name}</h3>
                   <p className="mt-1 text-text-muted">{source.what}</p>
                 </Card>
@@ -155,10 +152,10 @@ export default function LandingPage() {
       {/* Closing call to action */}
       <Section>
         <Reveal>
-          <div className="on-primary-surface flex flex-col items-start gap-5 rounded-card bg-primary p-6 text-on-primary sm:p-10 lg:flex-row lg:items-center lg:justify-between">
+          <div className="gradient-border flex flex-col items-start gap-5 rounded-card bg-surface p-6 sm:p-10 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h2 className="text-2xl text-on-primary sm:text-3xl">Ready to check your field?</h2>
-              <p className="mt-2 text-lg text-on-primary-muted">It works on a phone and on slow internet.</p>
+              <h2 className="text-2xl sm:text-3xl">Ready to check your field?</h2>
+              <p className="mt-2 text-lg text-text-muted">It works on a phone and on slow internet.</p>
             </div>
             <Button to="/field" size="lg" iconRight={<ArrowRight size={22} />} className="w-full sm:w-auto">
               Check my field

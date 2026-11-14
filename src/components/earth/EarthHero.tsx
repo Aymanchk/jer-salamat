@@ -44,6 +44,8 @@ export function EarthHero({ className }: { className?: string }) {
 
   return (
     <div ref={ref} className={cx('relative mx-auto aspect-square w-full', className)}>
+      {/* Soft atmosphere glow around the globe. */}
+      <div aria-hidden="true" className="globe-atmosphere pointer-events-none absolute -inset-[7%] rounded-pill" />
       <img
         src="/globe-fallback.svg"
         width={480}
@@ -74,7 +76,7 @@ export function EarthHero({ className }: { className?: string }) {
         </div>
       )}
 
-      <p className="absolute bottom-2 left-1/2 inline-flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-pill border border-border bg-surface px-3 py-1.5 text-sm font-bold text-text shadow-card">
+      <p className="glass absolute bottom-2 left-1/2 inline-flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-pill border border-glass px-3 py-1.5 text-sm font-bold text-text shadow-card">
         <MapPin size={16} aria-hidden="true" className="text-accent-text" />
         Chuy Valley, Kyrgyzstan
       </p>

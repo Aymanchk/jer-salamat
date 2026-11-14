@@ -20,14 +20,13 @@ export interface FieldLocation {
 /** Every question accepts "I don't know". */
 export type Unknown = 'unknown'
 
-export type PreviousCrop =
-  | 'wheat'
-  | 'barley'
-  | 'maize'
-  | 'sugar-beet'
-  | 'alfalfa'
-  | 'vegetables'
-  | 'other'
+/** Common rotations on Chuy Valley farms. Each id maps to a crop sequence in src/data/rotations.json. */
+export type CurrentRotationId =
+  | 'wheat-every-year'
+  | 'wheat-maize'
+  | 'beet-wheat-maize'
+  | 'alfalfa-wheat'
+  | 'vegetables-wheat'
 
 export type SoilType = 'light' | 'medium' | 'heavy' | 'stony'
 export type IrrigationAccess = 'canal' | 'pump' | 'none'
@@ -35,7 +34,7 @@ export type WaterLimit = 'often' | 'sometimes' | 'rarely'
 export type Priority = 'water' | 'soil' | 'income'
 
 export interface FarmerAnswers {
-  previousCrop?: PreviousCrop | Unknown
+  currentRotation?: CurrentRotationId | Unknown
   soilType?: SoilType | Unknown
   irrigation?: IrrigationAccess | Unknown
   waterLimited?: WaterLimit | Unknown

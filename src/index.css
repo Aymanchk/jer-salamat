@@ -15,7 +15,8 @@
     margin: 0;
     min-width: 320px;
     min-height: 100dvh;
-    background: var(--color-bg);
+    background: var(--color-bg) var(--hero-aurora) no-repeat;
+    background-attachment: fixed;
     color: var(--color-text);
     font-size: var(--fs-base);
     line-height: var(--lh-normal);
@@ -112,14 +113,143 @@
     background: var(--color-surface-muted);
   }
   .field-pin {
+    position: relative;
     color: var(--color-primary);
     filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.35));
   }
   .field-pin svg {
+    position: relative;
     display: block;
   }
   .field-pin .field-pin-dot {
     fill: var(--color-accent);
+  }
+  .field-pin .field-pin-body {
+    stroke: var(--color-accent);
+  }
+  /* Pulsing neon ring at the pin's tip. */
+  .field-pin-ring {
+    position: absolute;
+    left: 50%;
+    bottom: -10px;
+    width: 28px;
+    height: 28px;
+    margin-left: -14px;
+    border-radius: 999px;
+    border: 2px solid var(--color-accent);
+    box-shadow: var(--glow-soft);
+    animation: pin-ring 1.8s ease-out infinite;
+    transform: scaleY(0.45);
+  }
+  @keyframes pin-ring {
+    0% {
+      opacity: 0.95;
+      transform: scale(0.4) scaleY(0.45);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.6) scaleY(0.45);
+    }
+  }
+  .leaflet-control-attribution {
+    background: var(--glass-bg) !important;
+    color: var(--color-text-muted) !important;
+  }
+  .leaflet-control-attribution a {
+    color: var(--color-text) !important;
+  }
+  .leaflet-bar a {
+    background: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    border-color: var(--color-border) !important;
+  }
+  /* Darker map tiles in the night theme, so the map does not glare. */
+  [data-theme='dark'] .map-tiles {
+    filter: brightness(0.72) contrast(1.08) saturate(0.85) hue-rotate(-8deg);
+  }
+
+  /* ---- Glass, neon and glow ---- */
+  .glass {
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: blur(14px) saturate(1.3);
+    backdrop-filter: blur(14px) saturate(1.3);
+  }
+
+  /* Primary button: solid accent plus a glow in the night theme. */
+  .neon-btn {
+    box-shadow: var(--glow-accent);
+  }
+  .neon-btn:hover {
+    box-shadow: var(--glow-accent), 0 0 60px rgb(182 255 59 / 0.22);
+  }
+  [data-theme='light'] .neon-btn:hover {
+    box-shadow: var(--glow-accent);
+  }
+
+  .neon-chip {
+    background: var(--color-accent);
+    box-shadow: var(--glow-soft);
+  }
+
+  /* Animated gradient border. Content inside stays on a solid surface for readability. */
+  .gradient-border {
+    position: relative;
+    isolation: isolate;
+  }
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    padding: 1.5px;
+    border-radius: inherit;
+    background: var(--gradient-neon);
+    background-size: 200% 200%;
+    animation: border-flow 6s linear infinite;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+  @keyframes border-flow {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  /* Large display text with the neon gradient. Only for short headlines. */
+  .text-gradient {
+    background: var(--gradient-neon);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Hover lift for cards (tilt is added in JS on fine pointers). */
+  .lift {
+    transition:
+      transform var(--motion-base) var(--motion-ease),
+      box-shadow var(--motion-base) var(--motion-ease),
+      border-color var(--motion-base) var(--motion-ease);
+  }
+  @media (hover: hover) {
+    .lift:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-raised), var(--glow-soft);
+      border-color: var(--color-border-strong);
+    }
+  }
+
+  .globe-atmosphere {
+    background: radial-gradient(closest-side, transparent 78%, var(--globe-atmosphere) 88%, transparent 100%);
+    filter: blur(6px);
   }
 
   .globe-pulse {
@@ -134,5 +264,42 @@
       transform: scale(2.4);
       opacity: 0;
     }
+  }
+}
+
+/* Print / save as PDF: plain black on white, no chrome. */
+@media print {
+  :root,
+  [data-theme='dark'],
+  [data-theme='light'] {
+    --color-bg: #ffffff;
+    --color-surface: #ffffff;
+    --color-surface-muted: #f1f5f2;
+    --color-text: #000000;
+    --color-text-muted: #333333;
+    --color-heading: #000000;
+    --color-border: #bbbbbb;
+    --color-accent-text: #2d4a0b;
+    --color-primary: #ffffff;
+    --color-on-primary: #000000;
+    --color-on-primary-muted: #333333;
+    --glow-accent: none;
+    --glow-soft: none;
+    --shadow-card: none;
+  }
+  body {
+    background: #fff !important;
+  }
+  header,
+  footer,
+  .print\:hidden {
+    display: none !important;
+  }
+  .gradient-border::before {
+    display: none;
+  }
+  article,
+  section {
+    break-inside: avoid;
   }
 }
