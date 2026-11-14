@@ -268,10 +268,10 @@ function explain(id: PlanId, sequence: CropId[], data: RotationData, ctx: Contex
     }
 
     // Summer water shortage specific effects on non-water-saving plans
-    if (answers.waterLimited === 'often' && id !== 'water-saving') {
+    if ((answers.waterLimited === 'often' || answers.waterLimited === 'sometimes') && id === 'soil-health') {
+      limitations.unshift({ key: 'limit.sh.alfalfaWaterSupply' })
+    } else if (answers.waterLimited === 'often' && id !== 'water-saving') {
       limitations.push({ key: 'limit.wl.often' })
-    } else if (answers.waterLimited === 'sometimes' && id === 'soil-health') {
-      limitations.push({ key: 'limit.wl.sometimes' })
     }
   } else if (id === 'current' && ctx.sandy && thirsty.length > 0) {
     limitations.push({ key: 'limit.sandy', params: { crops: crops(thirsty) } })
@@ -427,7 +427,8 @@ export function recommend(answers: FarmerAnswers, climate: ClimateData | null, d
     { label: { key: 'step.later' }, text: { key: later }, basis: climate ? [...basis, 'nasa' as const] : basis },
   ]
 
-  const confidence: Confidence = unknown === 0 ? 'high' : unknown <= 2 ? 'medium' : 'low'
+  // Preliminary guidance: cap confidence at 'medium' (no laboratory soil test of the field).
+  const confidence: Confidence = unknown <= 2 ? 'medium' : 'low'
   const confidenceReason: Msg =
     unknown === 0 ? { key: 'conf.all' } : { key: unknown === 1 ? 'conf.unknownOne' : 'conf.unknownMany', params: { n: { n: unknown } } }
 

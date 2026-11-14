@@ -32,10 +32,16 @@ export const PLAN_ICONS: Record<PlanId, LucideIcon> = {
   reference: BookMarked,
 }
 
-function CompareChip({ value, dim }: { value: Comparison; dim: 'water' | 'soil' }) {
+function CompareChip({ value, dim, comparedToReference }: { value: Comparison; dim: 'water' | 'soil'; comparedToReference: boolean }) {
   const { t } = useT()
   const Icon = value === 'better' ? ArrowUp : value === 'worse' ? ArrowDown : Minus
-  const detail = value === 'better' || value === 'worse' ? t(`cmp.${dim}.${value}`) : ''
+  const target = comparedToReference ? t('cmp.targetRef') : t('cmp.targetCur')
+  const srText =
+    value === 'same'
+      ? ` ${t('cmp.srSame', { target })}`
+      : value === 'better' || value === 'worse'
+        ? ` ${t('cmp.srDiff', { target, detail: t(`cmp.${dim}.${value}`) })}`
+        : ''
   return (
     <span
       className={cx(
@@ -47,10 +53,7 @@ function CompareChip({ value, dim }: { value: Comparison; dim: 'water' | 'soil' 
     >
       {value !== 'unknown' && <Icon size={14} aria-hidden="true" strokeWidth={2.75} />}
       {t(`cmp.${value}`)}
-      <span className="sr-only">
-        {' '}
-        {t('cmp.sr')} {detail}
-      </span>
+      {srText && <span className="sr-only">{srText}</span>}
     </span>
   )
 }
@@ -168,7 +171,11 @@ export function RotationCard({ plan, best = false, comparedToReference = false, 
                 </span>
               </dt>
               <dd>
-                {plan.vsCurrent ? <CompareChip value={plan.vsCurrent.water} dim="water" /> : <span className="text-sm text-text-muted">{t('plan.baseline')}</span>}
+                {plan.vsCurrent ? (
+                  <CompareChip value={plan.vsCurrent.water} dim="water" comparedToReference={comparedToReference} />
+                ) : (
+                  <span className="text-sm text-text-muted">{t('plan.baseline')}</span>
+                )}
               </dd>
             </div>
             <div className="flex items-center gap-3 px-3 py-2.5">
@@ -178,7 +185,11 @@ export function RotationCard({ plan, best = false, comparedToReference = false, 
                 <span className="block text-sm text-text-muted">{t(`plan.soil.${plan.soilLevel}`)}</span>
               </dt>
               <dd>
-                {plan.vsCurrent ? <CompareChip value={plan.vsCurrent.soil} dim="soil" /> : <span className="text-sm text-text-muted">{t('plan.baseline')}</span>}
+                {plan.vsCurrent ? (
+                  <CompareChip value={plan.vsCurrent.soil} dim="soil" comparedToReference={comparedToReference} />
+                ) : (
+                  <span className="text-sm text-text-muted">{t('plan.baseline')}</span>
+                )}
               </dd>
             </div>
             <div className="flex items-center gap-3 px-3 py-2.5">

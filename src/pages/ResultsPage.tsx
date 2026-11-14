@@ -13,6 +13,7 @@ import {
   Satellite,
   Stethoscope,
   ThermometerSun,
+  TriangleAlert,
   TrendingDown,
   TrendingUp,
   Trophy,
@@ -165,6 +166,13 @@ export default function ResultsPage() {
             <h2 id="rec-title" className="mt-4 max-w-3xl text-2xl leading-snug sm:text-3xl">
               {tm(rec.headline)}
             </h2>
+
+            {rec.best.id === 'soil-health' && (answers.waterLimited === 'sometimes' || answers.waterLimited === 'often') && (
+              <p className="mt-3 flex items-start gap-2 rounded-control border border-worse bg-bg-2 p-3 text-sm font-semibold text-text">
+                <TriangleAlert size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-worse" />
+                <span>{t('limit.sh.alfalfaWaterSupply')}</span>
+              </p>
+            )}
 
             <h3 className="mt-6 text-sm font-semibold uppercase tracking-[0.14em] text-text-muted">{t('results.whatToDo')}</h3>
             <ol className="mt-3 grid gap-3 md:grid-cols-3">

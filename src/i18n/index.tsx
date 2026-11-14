@@ -70,7 +70,10 @@ export function LangProvider({ children }: { children: ReactNode }) {
         let shown: string
         if (typeof value === 'string') shown = value
         else if ('n' in value) shown = num(value.n, value.d ?? 0, value.sign ?? false)
-        else if ('plan' in value) shown = t(`plan.${value.plan}.title`)
+        else if ('plan' in value) {
+          const title = t(`plan.${value.plan}.title`)
+          shown = value.plan === 'current' || value.plan === 'reference' ? title.toLocaleLowerCase(locale) : title
+        }
         else {
           const names = value.crops.map((c) => t(`crop.${c}`).toLocaleLowerCase(locale))
           shown =
