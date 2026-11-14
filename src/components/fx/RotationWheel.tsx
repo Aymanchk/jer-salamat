@@ -36,7 +36,7 @@ export function RotationWheel({ sequence, size = 340, pace = 2.2, className }: R
     return () => clearInterval(id)
   }, [inView, reduced, paused, n, pace])
 
-  const R = 42 // ring radius, % of the box
+  const R = 38 // ring radius, % of the box: leaves room for the (scaled-up) crop icons
   const seg = 100 / n
   const circ = 2 * Math.PI * R
 
@@ -65,15 +65,16 @@ export function RotationWheel({ sequence, size = 340, pace = 2.2, className }: R
         />
       </svg>
       {/* A slow-turning outer ring, like a field seen from above. */}
-      <m.svg
-        viewBox="0 0 100 100"
-        className="absolute -inset-[4%] h-[108%] w-[108%]"
-        aria-hidden="true"
-        animate={reduced ? undefined : { rotate: 360 }}
-        transition={{ duration: 90, ease: 'linear', repeat: Infinity }}
-      >
-        <circle cx={50} cy={50} r={48} fill="none" className="stroke-wheat" strokeWidth={0.35} strokeDasharray="0.6 2.4" opacity={0.7} />
-      </m.svg>
+      {/* The ring turns inside its own box (the svg itself never rotates), so it can't widen the page. */}
+      <svg viewBox="0 0 100 100" overflow="hidden" className="absolute inset-0 h-full w-full max-w-full overflow-hidden" aria-hidden="true">
+        <m.g
+          style={{ transformOrigin: '50px 50px' }}
+          animate={reduced ? undefined : { rotate: 360 }}
+          transition={{ duration: 90, ease: 'linear', repeat: Infinity }}
+        >
+          <circle cx={50} cy={50} r={49} fill="none" className="stroke-wheat" strokeWidth={0.35} strokeDasharray="0.6 2.4" opacity={0.7} />
+        </m.g>
+      </svg>
 
       {sequence.map((crop, i) => {
         const angle = (i / n) * Math.PI * 2 - Math.PI / 2
