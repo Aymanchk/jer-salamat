@@ -36,8 +36,8 @@ interface Bounds {
 const DEG = Math.PI / 180
 /** Where the camera ends up: the middle of Kyrgyzstan, so the whole country fits and the Chuy Valley sits north. */
 const VIEW = { lat: 41.6, lon: 74.8 }
-/** Chuy Valley, drawn as an ellipse (illustrative). */
-const VALLEY = { lat: 42.85, lon: 74.7, aLon: 1.45, bLat: 0.24 }
+/** Chuy Valley in northern Kyrgyzstan (around Bishkek 42.87°N 74.59°E and Sokuluk 42.86°N 74.30°E), inside the border. */
+const VALLEY = { lat: 42.87, lon: 74.32, aLon: 0.62, bLat: 0.17 }
 /** Dense dot patch over Central Asia, revealed during the descent: a soft-edged disc around the target. */
 const PATCH: Bounds = { lon0: 63, lon1: 86, lat0: 34, lat1: 52 }
 const PATCH_RADIUS = 8.5 * (Math.PI / 180)
@@ -386,19 +386,19 @@ function Earth({ progress, dense, wide }: EarthProps) {
     const intro = easeOutCubic(clamp01(t / 1.4))
     const p = progress.get()
 
-    // 0–0.15 orbit, 0.12–0.72 descent, 0.45–0.78 border draws, 0.7–1 valley.
-    const dive = smooth(0.1, 0.78, p)
-    const kg = smooth(0.42, 0.66, p)
-    const valley = smooth(0.66, 0.86, p)
+    // 0–0.24 orbit, 0.06–0.68 descent, 0.24–0.52 border draws, 0.62–0.78 valley.
+    const dive = smooth(0.06, 0.68, p)
+    const kg = smooth(0.24, 0.52, p)
+    const valley = smooth(0.62, 0.78, p)
 
     // Slow idle spin while in orbit, blending into the target orientation.
     const idle = -VIEW.lon * DEG + 0.55 - t * 0.04
-    const yaw = lerp(idle, -VIEW.lon * DEG, smooth(0.04, 0.6, p))
-    const pitch = lerp(0.25, VIEW.lat * DEG, smooth(0.04, 0.6, p))
+    const yaw = lerp(idle, -VIEW.lon * DEG, smooth(0.04, 0.52, p))
+    const pitch = lerp(0.25, VIEW.lat * DEG, smooth(0.04, 0.52, p))
     g.rotation.set(pitch + pointer.current.y * 0.03 * (1 - dive), yaw + pointer.current.x * 0.05 * (1 - dive), 0, 'XYZ')
 
     // Wide screens: globe on the right of the text.
-    // Phones and tablets: a smaller globe framed in the free space above the headline.
+    // Phones and tablets: globe framed in the upper half above the text scrim throughout the scroll.
     const W = size.width
     const H = size.height
     const tanHalf = Math.tan((35 / 2) * DEG)
@@ -412,17 +412,21 @@ function Earth({ progress, dense, wide }: EarthProps) {
       far = H / 2 / (radiusPx * tanHalf)
       startY = ((H / 2 - centerPx) / (H / 2)) * far * tanHalf
     }
-    const offsetX = wide ? lerp(1.3, 0, smooth(0.05, 0.55, p)) : 0
-    const offsetY = lerp(startY, 0, smooth(0.05, 0.55, p))
-    g.position.set(offsetX, offsetY, 0)
 
     // End distance: close enough to feel the descent, far enough that all of Kyrgyzstan fits the width.
     const aspect = Math.min(1.2, W / H)
-    const near = 1 + Math.max(0.24, 0.095 / (tanHalf * aspect))
+    const near = 1 + Math.max(0.26, 0.105 / (tanHalf * aspect))
     const dist = lerp(far + (1 - intro) * 1.2, near, easeOutCubic(dive))
+
+    const endY = wide ? 0 : 0.44 * (near - 1) * tanHalf
+    const offsetX = wide ? lerp(1.3, 0.22 * (near - 1), smooth(0.05, 0.55, p)) : 0
+    const offsetY = wide ? 0 : lerp(startY, endY, easeOutCubic(dive))
+    g.position.set(offsetX, offsetY, 0)
+
     const tilt = smooth(0.62, 1, p)
-    camera.position.set(0, lerp(0, -1.5 * (near - 1), tilt), dist)
-    look.set(0, 0, lerp(0, 1, tilt))
+    const camDrop = (wide ? 0.85 : 0.5) * (near - 1) * tilt
+    camera.position.set(0, -camDrop, dist)
+    look.set(0, 0, 1)
     camera.lookAt(look)
 
     const vh = size.height * gl.getPixelRatio()

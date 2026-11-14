@@ -96,8 +96,8 @@ function StoryPanel({
 
 const CHAPTERS = [
   { at: 0, label: 'landing.ch.orbit' },
-  { at: 0.45, label: 'landing.ch.kg' },
-  { at: 0.8, label: 'landing.ch.valley' },
+  { at: 0.28, label: 'landing.ch.kg' },
+  { at: 0.68, label: 'landing.ch.valley' },
 ]
 
 /** Scenes 1–2: orbit → descent → valley, on one sticky 3D canvas. */
@@ -111,6 +111,7 @@ function OrbitStory({ onHow }: { onHow: () => void }) {
   const [slow, setSlow] = useState(false)
   const [active, setActive] = useState(true)
   const [hidden, setHidden] = useState(() => document.visibilityState === 'hidden')
+  const [heroVisible, setHeroVisible] = useState(true)
 
   // Stop rendering in a background tab.
   useEffect(() => {
@@ -119,11 +120,12 @@ function OrbitStory({ onHow }: { onHow: () => void }) {
     return () => document.removeEventListener('visibilitychange', onVis)
   }, [])
   const [chapter, setChapter] = useState(0)
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.07, 0.15], [1, 1, 0])
-  const heroY = useTransform(scrollYProgress, [0, 0.15], [0, -40])
-  const cueOpacity = useTransform(scrollYProgress, [0, 0.04], [1, 0])
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.18, 0.28], [1, 1, 0])
+  const heroY = useTransform(scrollYProgress, [0, 0.28], [0, -32])
+  const cueOpacity = useTransform(scrollYProgress, [0, 0.06], [1, 0])
   const rail = useTransform(scrollYProgress, [0, 1], ['0%', '100%'])
 
+  useMotionValueEvent(heroOpacity, 'change', (v) => setHeroVisible(v > 0.05))
   useMotionValueEvent(scrollYProgress, 'change', (p) => {
     setChapter(p >= CHAPTERS[2].at ? 2 : p >= CHAPTERS[1].at ? 1 : 0)
   })
@@ -179,27 +181,32 @@ function OrbitStory({ onHow }: { onHow: () => void }) {
           )}
         </div>
 
-        {/* Scrims keep text off the busy globe. */}
+        {/* Scrims keep text off the busy globe while leaving the upper globe/border window clear on mobile. */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,var(--color-bg)_0%,color-mix(in_srgb,var(--color-bg)_85%,transparent)_30%,transparent_62%)] max-lg:hidden" />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(0deg,var(--color-bg)_0%,var(--color-bg)_52%,color-mix(in_srgb,var(--color-bg)_75%,transparent)_60%,transparent_68%)] lg:hidden" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(0deg,var(--color-bg)_0%,var(--color-bg)_44%,color-mix(in_srgb,var(--color-bg)_75%,transparent)_52%,transparent_58%)] lg:hidden" />
 
         <Container className="relative h-full">
           {/* Scene 1: the headline. Visible immediately. */}
           <m.div
             style={{ opacity: heroOpacity, y: heroY }}
-            className="absolute inset-x-gutter bottom-[max(3.25rem,6vh)] max-w-xl lg:bottom-auto lg:top-1/2 lg:-translate-y-1/2"
+            aria-hidden={!heroVisible}
+            inert={!heroVisible}
+            className={cx(
+              'absolute inset-x-gutter bottom-[max(3rem,5vh)] max-w-xl lg:bottom-auto lg:top-1/2 lg:-translate-y-1/2',
+              !heroVisible && 'pointer-events-none',
+            )}
           >
             <HeroCopy onHow={onHow} />
           </m.div>
 
           {/* Scene 2: descent */}
-          <StoryPanel progress={scrollYProgress} range={[0.3, 0.4, 0.58, 0.68]} className="inset-x-gutter bottom-[12vh] max-w-md lg:bottom-auto lg:top-[30%]">
+          <StoryPanel progress={scrollYProgress} range={[0.24, 0.34, 0.6, 0.68]} className="inset-x-gutter bottom-[max(3rem,8vh)] max-w-md lg:bottom-auto lg:top-[30%]">
             <p className="font-display text-sm font-medium uppercase tracking-[0.16em] text-accent-text">{t('landing.s2.eyebrow')}</p>
             <h2 className="mt-2 text-3xl sm:text-4xl">{t('landing.s2.title')}</h2>
             <p className="mt-3 text-lg text-text-muted">{t('landing.s2.text')}</p>
           </StoryPanel>
 
-          <StoryPanel progress={scrollYProgress} range={[0.74, 0.82, 0.95, 1]} stay className="inset-x-gutter bottom-[10vh] max-w-md lg:bottom-auto lg:top-[26%]">
+          <StoryPanel progress={scrollYProgress} range={[0.64, 0.74, 0.95, 1]} stay className="inset-x-gutter bottom-[max(2.75rem,7vh)] max-w-md lg:bottom-auto lg:top-[26%]">
             <p className="font-display text-sm font-medium uppercase tracking-[0.16em] text-accent-text">{t('landing.s3.eyebrow')}</p>
             <h2 className="mt-2 text-3xl sm:text-4xl">{t('landing.s3.title')}</h2>
             <p className="mt-3 text-lg text-text-muted">

@@ -106,7 +106,7 @@ export function ValleyStats() {
         </h2>
         {showTerrain && <p className="mt-2 text-sm text-text-muted">{t('valley.illustrative')}</p>}
 
-        <ul className="mt-[16rem] grid gap-3 sm:mt-[19rem] md:grid-cols-3">
+        <ul className="mt-32 grid gap-3 sm:mt-56 md:grid-cols-3">
           {(stats ?? Array.from({ length: 3 }, () => null)).map((stat, i) => (
             <li
               key={stat?.label ?? i}
