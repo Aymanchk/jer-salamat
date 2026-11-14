@@ -66,7 +66,7 @@ function DriverRow({ driver, value }: { driver: Driver; value: string | undefine
         <span
           className={cx(
             'ml-2 text-sm',
-            effect === 'plan' ? 'font-bold text-accent-text' : effect === 'unanswered' ? 'text-worse' : 'text-text-muted',
+            effect === 'plan' || effect === 'matched' ? 'font-bold text-accent-text' : effect === 'unanswered' ? 'text-worse' : 'text-text-muted',
           )}
         >
           — {t(`yours.${effect}`)}

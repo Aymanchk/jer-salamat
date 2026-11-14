@@ -65,8 +65,8 @@ export interface PlanResult {
 
 export interface Driver {
   id: QuestionId
-  /** "plan": choosing differently changes the recommended plan. "details": it changes the reasons or comparison. */
-  effect: 'plan' | 'details' | 'none' | 'unanswered'
+  /** "plan": choosing differently changes the recommended plan. "matched": the top plan already matched this priority. "details": it changes the reasons or comparison. */
+  effect: 'plan' | 'matched' | 'details' | 'none' | 'unanswered'
 }
 
 export interface Recommendation {
@@ -162,16 +162,19 @@ function explain(id: PlanId, sequence: CropId[], data: RotationData, ctx: Contex
   const missingInfo: Msg[] = []
 
   if (id === 'water-saving') {
+    if (answers.priority === 'water') why.push({ key: 'why.ws.priority' })
     why.push({ key: 'why.ws.lowWater' })
     if (ctx.waterShort) why.push({ key: ctx.rainOnly ? 'why.ws.rainOnly' : 'why.ws.waterShort' })
     if (ctx.warming) why.push({ key: 'why.ws.warming' })
     benefits.push({ key: 'benefit.ws.lessWater' }, { key: 'benefit.ws.dryYear' })
     limitations.push({ key: 'limit.ws.fewLegumes' })
   } else if (id === 'soil-health') {
+    if (answers.priority === 'soil') why.push({ key: 'why.sh.priority' })
     why.push({ key: 'why.sh.legumes', params: { crops: crops(legumes) } }, { key: 'why.sh.roots' })
     benefits.push({ key: 'benefit.sh.fertilizer' }, { key: 'benefit.sh.pests' })
     limitations.push({ key: 'limit.sh.water' }, { key: 'limit.sh.later' })
   } else if (id === 'economic') {
+    if (answers.priority === 'income') why.push({ key: 'why.mc.priority' })
     why.push({ key: 'why.mc.sale' }, { key: 'why.mc.break' })
     limitations.push({ key: 'limit.mc.irrigation' })
     if (ctx.rainOnly) limitations.push({ key: 'limit.mc.rainOnly' })
@@ -202,8 +205,8 @@ function weightsFor(answers: FarmerAnswers, ctx: Context) {
   if (ctx.waterShort) w.water += 1.5
   if (ctx.sandy) w.water += 0.5
   if (ctx.warming || ctx.drying) w.water += 0.5
-  if (answers.priority === 'water') w.water += 3
-  if (answers.priority === 'soil') w.soil += 3
+  if (answers.priority === 'water') w.water += 5
+  if (answers.priority === 'soil') w.soil += 5
   return w
 }
 
@@ -290,6 +293,13 @@ export function recommend(answers: FarmerAnswers, climate: ClimateData | null, d
     if (answers[q] === undefined || answers[q] === 'unknown') return { id: q, effect: 'unanswered' }
     const alt = core({ ...answers, [q]: 'unknown' }, climate, data)
     if (alt.best.id !== best.id) return { id: q, effect: 'plan' }
+    if (q === 'priority') {
+      const matchesPriority =
+        (answers.priority === 'water' && best.id === 'water-saving') ||
+        (answers.priority === 'soil' && best.id === 'soil-health') ||
+        (answers.priority === 'income' && best.id === 'economic')
+      if (matchesPriority) return { id: q, effect: 'matched' }
+    }
     return { id: q, effect: fingerprint(alt) !== base ? 'details' : 'none' }
   })
 
