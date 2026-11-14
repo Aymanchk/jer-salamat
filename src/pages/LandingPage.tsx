@@ -2,7 +2,7 @@ import { ArrowDown, ArrowRight, ChartLine, Check, ClipboardList, MapPin, Satelli
 import { AnimatePresence, m, useMotionValueEvent, useReducedMotion, useScroll, useTransform, type MotionValue } from 'motion/react'
 import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
-import { CropMarquee } from '@/components/fx/CropMarquee'
+import { AerialFields } from '@/components/fx/AerialFields'
 import { RotationWheel } from '@/components/fx/RotationWheel'
 import { SectionTitle } from '@/components/fx/SectionTitle'
 import { SproutRow } from '@/components/fx/SproutRow'
@@ -577,6 +577,19 @@ function HowItWorks() {
   )
 }
 
+/** The valley from above: fields trading crops year by year. */
+function AerialSection() {
+  const { t } = useT()
+  return (
+    <section aria-labelledby="aerial-title" className="pt-section">
+      <Container>
+        <SectionTitle id="aerial-title" eyebrow={t('aerial.eyebrow')} line1={t('aerial.title1')} line2={t('aerial.title2')} />
+        <AerialFields className="mt-8" />
+      </Container>
+    </section>
+  )
+}
+
 /** Why rotate at all: a turning wheel of one real plan from the app. */
 function WhyRotate() {
   const { t } = useT()
@@ -676,10 +689,7 @@ export default function LandingPage() {
   return (
     <div data-theme="dark" className="bg-bg text-text">
       {can3D ? <OrbitStory onHow={toHow} /> : <StaticHero onHow={toHow} />}
-      <div className="border-y border-border bg-bg-2 py-4">
-        <CropMarquee />
-        <CropMarquee reverse className="mt-1 [--marquee-time:75s]" />
-      </div>
+      <AerialSection />
       <ValleyStats />
       <HowItWorks />
       <WhyRotate />

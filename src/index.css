@@ -323,22 +323,13 @@
     }
   }
 
-  /* Endless ribbon: the track holds the items twice and slides by half its width. */
-  .marquee {
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
-    mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  /* Water running along the canal. */
+  .canal-flow {
+    animation: canal-flow 1.6s linear infinite;
   }
-  .marquee-track {
-    display: flex;
-    width: max-content;
-    animation: marquee var(--marquee-time, 60s) linear infinite;
-  }
-  .marquee:hover .marquee-track {
-    animation-play-state: paused;
-  }
-  @keyframes marquee {
+  @keyframes canal-flow {
     to {
-      transform: translateX(-50%);
+      stroke-dashoffset: -26;
     }
   }
 
@@ -468,7 +459,6 @@
     opacity: 1 !important;
     transform: none !important;
   }
-  .marquee,
   svg.sway {
     display: none !important;
   }

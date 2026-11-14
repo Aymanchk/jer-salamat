@@ -584,4 +584,10 @@ export const en: Record<string, string> = {
   'compare.title2': 'vs 3 new plans.',
   'about.title1': 'Where the numbers',
   'about.title2': 'come from.',
+  'aerial.eyebrow': 'The valley from above',
+  'aerial.title1': 'Every year,',
+  'aerial.title2': 'the fields swap crops.',
+  'aerial.caption': 'Each patch is a field. Every few seconds a year goes by and the crops move on, just like a rotation. Tap a field to see what grows there. It is a drawing, not a satellite photo.',
+  'aerial.aria': 'Animated drawing of fields seen from above, changing crops year by year.',
+  'aerial.legend': 'Crops',
 }
