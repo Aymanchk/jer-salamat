@@ -1,5 +1,8 @@
-import { ExternalLink, ShieldCheck, TriangleAlert } from 'lucide-react'
+import { BookA, ExternalLink, ShieldCheck, TriangleAlert } from 'lucide-react'
+import { m } from 'motion/react'
+import { SproutRow } from '@/components/fx/SproutRow'
 import { Container, Section, SectionHeading } from '@/components/layout/Page'
+import { AccordionItem } from '@/components/ui/Accordion'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/States'
@@ -22,11 +25,32 @@ export default function AboutPage() {
   const { t } = useT()
   return (
     <>
-      <Container className="pt-6 sm:pt-10">
-        <p className="mb-2 font-display text-sm font-semibold uppercase tracking-[0.14em] text-accent-text">{t('about.eyebrow')}</p>
-        <h1 className="max-w-3xl text-3xl sm:text-4xl">{t('about.title')}</h1>
-        <p className="mt-3 max-w-2xl text-lg text-text-muted">{t('about.text')}</p>
-        <div className="mt-6 flex max-w-3xl gap-3 rounded-card border border-border bg-surface p-4">
+      <Container className="pt-8 sm:pt-14">
+        <m.p
+          className="mb-3 inline-flex items-center gap-2 font-display text-sm font-medium uppercase tracking-[0.16em] text-accent-text"
+          initial={{ opacity: 0, x: -12 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <span className="live-dot" aria-hidden="true" />
+          {t('about.eyebrow')}
+        </m.p>
+        <h1 className="max-w-3xl text-[2.5rem] leading-[1.02] sm:text-6xl">
+          {[t('about.title1'), t('about.title2')].map((line, i) => (
+            <span key={i} className="block overflow-hidden pb-[0.1em]">
+              <m.span
+                className={i === 1 ? 'block text-accent-text' : 'block'}
+                initial={{ y: '70%' }}
+                animate={{ y: 0 }}
+                transition={{ duration: 1, delay: 0.1 + i * 0.12, ease: [0.16, 1, 0.3, 1] }}
+              >
+                {line}
+              </m.span>
+            </span>
+          ))}
+        </h1>
+        <p className="mt-4 max-w-2xl text-lg text-text-muted">{t('about.text')}</p>
+        <div className="mt-6 flex max-w-3xl gap-3 rounded-card border border-accent-text/40 bg-accent-soft p-4">
           <ShieldCheck size={22} aria-hidden="true" className="mt-0.5 shrink-0 text-accent-text" />
           <div>
             <h2 className="text-lg">{t('about.policyTitle')}</h2>
@@ -92,37 +116,41 @@ export default function AboutPage() {
         <SectionHeading id="about-glossary" title={t('about.glossary')}>
           {t('about.glossaryText')}
         </SectionHeading>
-        <dl className="grid gap-4 md:grid-cols-2">
+        <div className="rounded-card border border-border bg-surface px-5 py-1">
           {Object.entries(GLOSSARY).map(([id, entry]) => (
-            <Card key={id} id={`term-${id}`}>
-              <dt className="text-lg font-bold text-heading">{t(`gl.${id}.term`)}</dt>
-              <dd className="mt-1 text-text-muted">
-                {t(`gl.${id}.meaning`)}
+            <div key={id} id={`term-${id}`}>
+              <AccordionItem title={t(`gl.${id}.term`)} icon={BookA}>
+                <p>{t(`gl.${id}.meaning`)}</p>
                 {entry.source && (
                   <a href={entry.source} target="_blank" rel="noreferrer" className="mt-2 flex min-h-11 items-center break-all text-sm text-heading underline underline-offset-4">
                     {t('about.source')}: {entry.source.replace(/^https?:\/\//, '')}
                   </a>
                 )}
-              </dd>
-            </Card>
+              </AccordionItem>
+            </div>
           ))}
-        </dl>
+        </div>
       </Section>
 
       <Section labelledBy="about-limits">
         <SectionHeading id="about-limits" title={t('about.limits')}>
           {t('about.limitsText')}
         </SectionHeading>
-        <Card padding="lg">
-          <ul className="space-y-3">
-            {LIMITATIONS.map((key) => (
-              <li key={key} className="flex gap-3">
-                <TriangleAlert size={20} aria-hidden="true" className="mt-0.5 shrink-0 text-accent-text" />
-                <span>{t(key)}</span>
-              </li>
-            ))}
-          </ul>
-        </Card>
+        <ul className="grid gap-3 md:grid-cols-2">
+          {LIMITATIONS.map((key, i) => (
+            <m.li
+              key={key}
+              className="flex gap-3 rounded-card border border-border bg-surface p-4"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.7, delay: (i % 2) * 0.1, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <TriangleAlert size={20} aria-hidden="true" className="mt-0.5 shrink-0 text-wheat" />
+              <span>{t(key)}</span>
+            </m.li>
+          ))}
+        </ul>
       </Section>
 
       <Section labelledBy="about-team">
@@ -141,6 +169,7 @@ export default function AboutPage() {
           </EmptyState>
         )}
       </Section>
+      <SproutRow className="mt-section h-24 sm:h-32" count={22} />
     </>
   )
 }

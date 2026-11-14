@@ -2,8 +2,12 @@ import { CloudRain, Droplets, ThermometerSun, type LucideIcon } from 'lucide-rea
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Container } from '@/components/layout/Page'
 import { Badge } from '@/components/ui/Badge'
+import { SectionTitle } from '@/components/fx/SectionTitle'
+import { WarmingStripes } from '@/components/fx/WarmingStripes'
 import { CountUp } from '@/components/ui/CountUp'
-import { parsePower, temperatureChange, type ClimateData, type PowerResponse } from '@/core'
+import { Reveal } from '@/components/ui/Reveal'
+import { temperatureChange, type ClimateData } from '@/core'
+import { useSokuluk } from '@/hooks/useSokuluk'
 import { useCanRender3D } from '@/hooks/useDeviceCapability'
 import { useT, type TFunc } from '@/i18n'
 import { cx } from '@/lib'
@@ -24,8 +28,7 @@ interface Stat {
 function statsOf(data: ClimateData, t: TFunc): Stat[] {
   const p = data.series.precipitation.points
   const s = data.series.soilWetness.points
-  const change = temperatureChange(data)
-  const tChange = change.trend
+  const tChange = temperatureChange(data).trend
   const pMean = p.reduce((a, x) => a + x.value, 0) / p.length
   const pMin = Math.min(...p.map((x) => x.value))
   const sMean = s.reduce((a, x) => a + x.value, 0) / s.length
@@ -37,7 +40,7 @@ function statsOf(data: ClimateData, t: TFunc): Stat[] {
       decimals: 1,
       prefix: tChange > 0 ? '+' : '',
       suffix: ' °C',
-      note: t('valley.warmerNote', { first: change.firstSpan, last: change.lastSpan, decades: { n: change.decades, d: 2, sign: true } }),
+      note: t('valley.warmerNote'),
       tone: 'text-data-temp',
     },
     {
@@ -64,18 +67,11 @@ function statsOf(data: ClimateData, t: TFunc): Stat[] {
 /** Scene 3: the valley, with real NASA POWER numbers for the Sokuluk area. */
 export function ValleyStats() {
   const { t } = useT()
-  const [data, setData] = useState<ClimateData | null>(null)
-  const [failed, setFailed] = useState(false)
+  const { data, failed } = useSokuluk()
   const [showTerrain, setShowTerrain] = useState(false)
   const can3D = useCanRender3D()
   const ref = useRef<HTMLElement>(null)
 
-  useEffect(() => {
-    fetch('/data/sokuluk.json')
-      .then((r) => (r.ok ? (r.json() as Promise<PowerResponse>) : Promise.reject(new Error(String(r.status)))))
-      .then((json) => setData(parsePower(json, false)))
-      .catch(() => setFailed(true))
-  }, [])
 
   // Load the terrain only when the section comes near the screen.
   useEffect(() => {
@@ -100,13 +96,15 @@ export function ValleyStats() {
       </div>
 
       <Container className="relative">
-        <p className="font-display text-sm font-medium uppercase tracking-[0.16em] text-accent-text">{t('valley.eyebrow')}</p>
-        <h2 id="valley-title" className="mt-2 max-w-2xl text-3xl sm:text-5xl">
-          {t('valley.title')}
-        </h2>
+        <SectionTitle id="valley-title" eyebrow={t('valley.eyebrow')} line1={t('valley.title1')} line2={t('valley.title2')} />
         {showTerrain && <p className="mt-2 text-sm text-text-muted">{t('valley.illustrative')}</p>}
 
-        <ul className="mt-32 grid gap-3 sm:mt-56 md:grid-cols-3">
+        <Reveal className="mt-24 rounded-card border border-glass bg-surface/80 p-4 pt-14 shadow-raised backdrop-blur sm:mt-40 sm:p-6 sm:pt-16">
+          <p className="mb-4 font-display text-xl font-semibold text-heading">{t('valley.stripesTitle')}</p>
+          {data ? <WarmingStripes points={data.series.temperature.points} /> : <div className="skeleton h-28 sm:h-40" />}
+        </Reveal>
+
+        <ul className="mt-3 grid gap-3 md:grid-cols-3">
           {(stats ?? Array.from({ length: 3 }, () => null)).map((stat, i) => (
             <li
               key={stat?.label ?? i}
@@ -118,7 +116,7 @@ export function ValleyStats() {
                     <stat.icon size={18} aria-hidden="true" className={stat.tone} />
                     <span className="font-bold">{stat.label}</span>
                   </div>
-                  <p className={cx('mt-2 font-display text-5xl font-semibold tabular-nums', stat.tone)}>
+                  <p className={cx('mt-2 font-display text-5xl font-semibold tabular-nums sm:text-6xl', stat.tone)}>
                     <CountUp value={stat.value} decimals={stat.decimals} prefix={stat.prefix} suffix={stat.suffix} />
                   </p>
                   <p className="mt-2 text-sm text-text-muted">{stat.note}</p>

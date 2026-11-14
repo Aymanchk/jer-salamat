@@ -30,6 +30,7 @@
   --color-on-accent: #ffffff;
   --color-accent-text: #2a7136; /* 6:1 on white */
   --color-accent-soft: #e7f2e4;
+  --color-wheat: #a87a1c; /* 4.6:1 on paper */
 
   --color-danger: #d92d20;
   --color-danger-soft: #fef3f2;
@@ -147,6 +148,7 @@
   --color-on-accent: #ffffff;
   --color-accent-text: #8fd19b;
   --color-accent-soft: #1c3323;
+  --color-wheat: #e8c46a;
 
   --color-danger: #ff7a70;
   --color-danger-soft: #3b1a17;

@@ -14,7 +14,7 @@
     {
       "id": "kg-esmf-2024",
       "kind": "reference",
-      "name": "Environmental and Social Management Framework (ESMF), WSSUAP project — crops of Sokuluk District",
+      "name": "Environmental and Social Management Framework (ESMF), WSSUAP project, crops of Sokuluk District",
       "publisher": "Government of the Kyrgyz Republic (project implementation unit)",
       "url": "https://tunuksuu.kg/wp-content/uploads/2024/11/KG_ESMF_WSSUAP_PIU_SIDDWSWD_RUS1.pdf",
       "year": "October 2024 (based on 2021 statistics)",
@@ -54,10 +54,10 @@
     {
       "id": "kg-stat",
       "kind": "future",
-      "name": "National Statistical Committee of the Kyrgyz Republic — agriculture",
+      "name": "National Statistical Committee of the Kyrgyz Republic: agriculture",
       "publisher": "stat.gov.kg",
       "url": "https://www.stat.gov.kg/ru/statistics/selskoe-hozyajstvo/",
-      "year": "—",
+      "year": "n/a",
       "unit": "Yields, prices (not used yet)",
       "note": "Possible future source for verified yields and prices. Until then, income is not estimated."
     }

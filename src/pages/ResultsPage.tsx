@@ -1,10 +1,10 @@
 import {
   ArrowRight,
+  BookOpen,
   CircleCheck,
   CloudRain,
   Droplets,
   Gauge,
-  MapPin,
   MapPinOff,
   Minus,
   Pencil,
@@ -12,6 +12,7 @@ import {
   RotateCcw,
   Satellite,
   Stethoscope,
+  Tag,
   ThermometerSun,
   TriangleAlert,
   TrendingDown,
@@ -19,14 +20,18 @@ import {
   Trophy,
   Users,
 } from 'lucide-react'
+import { m } from 'motion/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
-import { Container, Section, SectionHeading } from '@/components/layout/Page'
+import { useNavigate } from 'react-router'
+import { RotationWheel } from '@/components/fx/RotationWheel'
+import { SectionTitle } from '@/components/fx/SectionTitle'
+import { SproutRow } from '@/components/fx/SproutRow'
+import { Container } from '@/components/layout/Page'
 import { ChartCard } from '@/components/results/ChartCard'
 import { RotationCard } from '@/components/results/RotationCard'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
+import { AccordionItem } from '@/components/ui/Accordion'
 import { CountUp } from '@/components/ui/CountUp'
 import { Reveal } from '@/components/ui/Reveal'
 import { EmptyState } from '@/components/ui/States'
@@ -41,6 +46,7 @@ import { cx, formatCoords } from '@/lib'
 import { useSession } from '@/state/session'
 
 const DATA = ROTATIONS as unknown as RotationData
+const EASE = [0.16, 1, 0.3, 1] as const
 
 const TAKEAWAY_ICON = { temperature: ThermometerSun, precipitation: CloudRain, soilWetness: Droplets, record: Trophy }
 const DIRECTION_ICON = { up: TrendingUp, down: TrendingDown, flat: Minus }
@@ -70,7 +76,7 @@ function DriverRow({ driver, value }: { driver: Driver; value: string | undefine
             effect === 'plan' || effect === 'matched' ? 'font-bold text-accent-text' : effect === 'unanswered' ? 'text-worse' : 'text-text-muted',
           )}
         >
-          — {t(`yours.${effect}`)}
+          ({t(`yours.${effect}`)})
         </span>
       </span>
     </li>
@@ -136,192 +142,203 @@ export default function ResultsPage() {
   const first = String(tp[0]?.year ?? 1986)
   const last = String(tp[tp.length - 1]?.year ?? 2025)
 
+  const best = rec.best
+  const waterRisk = best.id === 'soil-health' && (answers.waterLimited === 'sometimes' || answers.waterLimited === 'often')
+
   return (
     <>
-      {/* ---------- Your plan ---------- */}
-      <Container className="pt-6 sm:pt-10">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div className="min-w-0">
-            <p className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-accent-text">{t('results.eyebrow')}</p>
-            <h1 className="mt-1 text-3xl sm:text-4xl">{t('results.title')}</h1>
-            <p className="mt-2 flex items-center gap-2 text-text-muted">
-              <MapPin size={18} aria-hidden="true" className="shrink-0 text-accent-text" />
-              <span className="tabular-nums">{formatCoords(field.lat, field.lon, num, lang)}</span>
-            </p>
-          </div>
-          <div className="flex gap-2 print:hidden">
-            <Button variant="outline" iconLeft={<Printer size={18} />} onClick={() => window.print()}>
-              {t('results.print')}
-            </Button>
-          </div>
-        </div>
-
-        <section id="recommendation" aria-labelledby="rec-title" className="mt-6 scroll-mt-32">
-          <div className="gradient-border rounded-card bg-surface p-5 shadow-card sm:p-8">
-            <div className="flex flex-wrap gap-2">
-              <Badge type="answers" />
-              <Badge type="guidance" />
-              {climateReady && <Badge type="historical" />}
-            </div>
-            <h2 id="rec-title" className="mt-4 max-w-3xl text-2xl leading-snug sm:text-3xl">
+      {/* ---------- Your plan: the best fit, as a turning wheel ---------- */}
+      <section id="recommendation" aria-labelledby="rec-title" className="relative scroll-mt-32 overflow-hidden">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-40 -top-40 h-[36rem] w-[36rem] rounded-pill bg-accent-soft opacity-60 blur-3xl" />
+        <Container className="relative grid items-center gap-8 pt-8 sm:pt-12 lg:grid-cols-[1.15fr_0.85fr] lg:gap-12">
+          <div>
+            <m.p
+              className="inline-flex items-center gap-2 font-display text-sm font-medium uppercase tracking-[0.16em] text-accent-text"
+              initial={{ opacity: 0, x: -12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, ease: EASE }}
+            >
+              <span className="live-dot" aria-hidden="true" />
+              {t('results.eyebrow')}
+              <span className="text-text-muted normal-case tracking-normal">· {formatCoords(field.lat, field.lon, num, lang)}</span>
+            </m.p>
+            <h1 id="rec-title" className="mt-3 text-[2.5rem] leading-[1.02] sm:text-6xl">
+              <span className="block overflow-hidden pb-[0.1em]">
+                <m.span className="block" initial={{ y: '70%' }} animate={{ y: 0 }} transition={{ duration: 1, ease: EASE }}>
+                  {t('results.title')}
+                </m.span>
+              </span>
+              <span className="block overflow-hidden pb-[0.1em]">
+                <m.span className="block text-accent-text" initial={{ y: '70%' }} animate={{ y: 0 }} transition={{ duration: 1, delay: 0.12, ease: EASE }}>
+                  {t(`plan.${best.id}.title`)}.
+                </m.span>
+              </span>
+            </h1>
+            <m.p className="mt-4 max-w-xl text-lg text-text" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.3, ease: EASE }}>
               {tm(rec.headline)}
-            </h2>
+            </m.p>
 
-            {rec.best.id === 'soil-health' && (answers.waterLimited === 'sometimes' || answers.waterLimited === 'often') && (
-              <p className="mt-3 flex items-start gap-2 rounded-control border border-worse bg-bg-2 p-3 text-sm font-semibold text-text">
+            <m.div className="mt-5 flex flex-wrap items-center gap-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 0.5 }}>
+              <span className="inline-flex items-center gap-2 rounded-pill border border-border bg-surface px-3 py-1.5 text-sm font-bold">
+                <Gauge size={16} aria-hidden="true" className="text-accent-text" />
+                {t('conf.label')}:{' '}
+                <span className={cx(rec.confidence === 'high' ? 'text-better' : rec.confidence === 'low' ? 'text-worse' : 'text-text')}>{t(`conf.${rec.confidence}`)}</span>
+              </span>
+              <Badge type="answers" />
+              {climateReady && <Badge type="historical" />}
+            </m.div>
+
+            {waterRisk && (
+              <p className="mt-4 flex items-start gap-2 rounded-control border border-worse bg-bg-2 p-3 text-sm font-semibold text-text">
                 <TriangleAlert size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-worse" />
                 <span>{t('limit.sh.alfalfaWaterSupply')}</span>
               </p>
             )}
 
-            <h3 className="mt-6 text-sm font-semibold uppercase tracking-[0.14em] text-text-muted">{t('results.whatToDo')}</h3>
-            <ol className="mt-3 grid gap-3 md:grid-cols-3">
-              {rec.steps.map((step, i) => (
-                <li key={step.label.key} className="relative flex flex-col rounded-control border border-border bg-bg-2 p-4">
-                  <div className="flex items-center gap-2">
-                    <span className="neon-chip inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-pill font-display text-sm font-bold text-on-accent">
-                      {i + 1}
-                    </span>
-                    <span className="font-display font-semibold text-heading">{tm(step.label)}</span>
-                  </div>
-                  <p className="mt-2 flex-1 text-text">{tm(step.text)}</p>
-                  <p className="mt-3 flex flex-wrap items-center gap-1.5 text-sm text-text-muted">
-                    <span>{t('results.basedOn')}</span>
-                    {step.basis.map((b) => (
-                      <Badge key={b} type={BASIS_BADGE[b]}>
-                        {t(`basis.${b}`)}
-                      </Badge>
-                    ))}
-                  </p>
-                </li>
+            <div className="mt-6 flex flex-wrap gap-2 print:hidden">
+              <Button to="/questions" variant="outline" iconLeft={<Pencil size={18} />}>
+                {t('results.changeAnswers')}
+              </Button>
+              <Button variant="ghost" iconLeft={<Printer size={18} />} onClick={() => window.print()}>
+                {t('results.print')}
+              </Button>
+            </div>
+          </div>
+
+          <m.div initial={{ opacity: 0, scale: 0.85, rotate: -20 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} transition={{ duration: 1.4, delay: 0.2, ease: EASE }}>
+            <RotationWheel sequence={best.sequence} size={400} />
+          </m.div>
+        </Container>
+      </section>
+
+      {/* ---------- Three steps to start ---------- */}
+      <Container className="pt-section">
+        <SectionTitle line1={t('results.whatToDo')} line2={t('results.whatToDo2')} />
+        <ol className="relative mt-8 grid gap-4 md:grid-cols-3">
+          <m.span
+            aria-hidden="true"
+            className="absolute left-[16%] right-[16%] top-8 hidden h-0.5 origin-left bg-accent-text md:block"
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 1.6, delay: 0.3, ease: 'easeInOut' }}
+          />
+          {rec.steps.map((step, i) => (
+            <m.li
+              key={step.label.key}
+              className="relative flex flex-col rounded-card border border-border bg-surface p-5"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.9, delay: 0.2 + i * 0.25, ease: EASE }}
+            >
+              <span className="neon-chip relative inline-flex h-11 w-11 items-center justify-center rounded-pill font-display text-lg font-bold text-on-accent">{i + 1}</span>
+              <p className="mt-4 font-display text-xl font-semibold text-heading">{tm(step.label)}</p>
+              <p className="mt-2 flex-1 text-text">{tm(step.text)}</p>
+              <p className="mt-4 flex flex-wrap items-center gap-1.5 text-sm text-text-muted">
+                {step.basis.map((b) => (
+                  <Badge key={b} type={BASIS_BADGE[b]}>
+                    {t(`basis.${b}`)}
+                  </Badge>
+                ))}
+              </p>
+            </m.li>
+          ))}
+        </ol>
+
+        {/* Everything behind the plan, folded away until asked for. */}
+        <div className="mt-6 rounded-card border border-border bg-surface px-5 py-1">
+          <AccordionItem title={t('yours.title')} icon={Users}>
+            <p>{t('yours.text')}</p>
+            <ul className="mt-2 divide-y divide-border">
+              {rec.drivers.map((d) => (
+                <DriverRow key={d.id} driver={d} value={answers[d.id]} />
               ))}
-            </ol>
-
-            <div className="mt-5 grid gap-3 md:grid-cols-2">
-              <div className="flex items-start gap-3 rounded-control border border-border p-4">
-                <Gauge size={22} aria-hidden="true" className="mt-0.5 shrink-0 text-accent-text" />
-                <div>
-                  <p className="font-bold text-text">
-                    {t('conf.label')}:{' '}
-                    <span className={cx(rec.confidence === 'high' ? 'text-better' : rec.confidence === 'low' ? 'text-worse' : 'text-text')}>
-                      {t(`conf.${rec.confidence}`)}
-                    </span>
-                  </p>
-                  <p className="text-text-muted">{tm(rec.confidenceReason)}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 rounded-control border border-border p-4">
-                <Stethoscope size={22} aria-hidden="true" className="mt-0.5 shrink-0 text-accent-text" />
-                <div>
-                  <p className="font-bold text-text">{t('results.agronomist')}</p>
-                  <p className="text-text-muted">{t('results.agronomistText')}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <div className="rounded-control border border-border bg-bg-2 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="text-base font-bold text-heading">{t('results.nasaFactorsTitle')}</h3>
-                  <Badge type="historical" />
-                </div>
-                <ul className="mt-2 list-disc space-y-1.5 pl-4 text-sm text-text">
-                  {rec.nasaFactors.map((m) => (
-                    <li key={m.key}>{tm(m)}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="rounded-control border border-border bg-bg-2 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="text-base font-bold text-heading">{t('results.assumptionsTitle')}</h3>
-                  <Badge type="guidance">{t('badge.preliminary')}</Badge>
-                </div>
-                <ul className="mt-2 list-disc space-y-1.5 pl-4 text-sm text-text">
-                  {rec.assumptions.map((m) => (
-                    <li key={m.key}>{tm(m)}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* What makes your plan yours: which answers changed it, what is shared regional climate. */}
-        <Card className="mt-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-xl">{t('yours.title')}</h2>
-            <Link to="/questions" className="inline-flex min-h-tap items-center gap-2 font-bold text-heading underline underline-offset-4 print:hidden">
-              <Pencil size={16} aria-hidden="true" />
-              {t('results.changeAnswers')}
-            </Link>
-          </div>
-          <p className="mt-1 text-text-muted">{t('yours.text')}</p>
-          <ul className="mt-2 divide-y divide-border">
-            {rec.drivers.map((d) => (
-              <DriverRow key={d.id} driver={d} value={answers[d.id]} />
-            ))}
-          </ul>
-          <div className="mt-3 flex items-start gap-3 rounded-control bg-surface-muted p-3">
-            <Users size={20} aria-hidden="true" className="mt-0.5 shrink-0 text-accent-text" />
-            <p className="text-text">
+            </ul>
+            <p className="mt-3 text-text">
               <span className="font-bold">{t('yours.shared')}: </span>
               {t('yours.sharedText')}
             </p>
-          </div>
-        </Card>
+          </AccordionItem>
+          <AccordionItem title={t('results.nasaFactorsTitle')} icon={Satellite}>
+            <ul className="list-disc space-y-1.5 pl-4">
+              {rec.nasaFactors.map((f) => (
+                <li key={f.key}>{tm(f)}</li>
+              ))}
+            </ul>
+          </AccordionItem>
+          <AccordionItem title={t('results.assumptionsTitle')} icon={BookOpen}>
+            <ul className="list-disc space-y-1.5 pl-4">
+              {rec.assumptions.map((f) => (
+                <li key={f.key}>{tm(f)}</li>
+              ))}
+            </ul>
+          </AccordionItem>
+          <AccordionItem title={t('results.agronomist')} icon={Stethoscope}>
+            <p>{t('results.agronomistText')}</p>
+            <p className="mt-2">
+              {t('conf.label')}: {t(`conf.${rec.confidence}`)}. {tm(rec.confidenceReason)}
+            </p>
+          </AccordionItem>
+        </div>
       </Container>
 
       {/* ---------- Climate ---------- */}
       <section id="climate" aria-labelledby="climate-title" className="scroll-mt-32 pt-section">
         <Container>
-          <SectionHeading id="climate-title" eyebrow={t('climate.eyebrow')} title={t('climate.title')}>
+          <SectionTitle id="climate-title" eyebrow={t('climate.eyebrow')} line1={t('climate.title1')} line2={t('climate.title2')}>
             {t('climate.text', { first, last })}
-          </SectionHeading>
+          </SectionTitle>
 
           {climateReady && climate && (
-            <Reveal>
-              <div className="mb-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                  <div className="rounded-card border border-border bg-surface p-4">
-                    <p className="text-sm text-text-muted">{t('climate.tempChange')}</p>
-                    <p className="mt-1 font-display text-4xl font-semibold tabular-nums text-data-temp">
-                      <CountUp value={change?.trend ?? 0} decimals={1} prefix={(change?.trend ?? 0) > 0 ? '+' : ''} suffix=" °C" />
+            <div className="mb-6 mt-8 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                <Reveal className="rounded-card border border-border bg-surface p-5">
+                  <p className="text-sm text-text-muted">{t('climate.tempChange')}</p>
+                  <p className="mt-1 font-display text-5xl font-semibold tabular-nums text-data-temp">
+                    <CountUp value={change?.trend ?? 0} decimals={1} prefix={(change?.trend ?? 0) > 0 ? '+' : ''} suffix=" °C" />
+                  </p>
+                  {change && (
+                    <p className="text-sm text-text-muted">
+                      {t('climate.tempMethod', { decades: { n: change.decades, d: 2, sign: true }, first: change.firstSpan, last: change.lastSpan })}
                     </p>
-                    {change && (
-                      <p className="text-sm text-text-muted">
-                        {t('climate.tempMethod', { decades: { n: change.decades, d: 2, sign: true }, first: change.firstSpan, last: change.lastSpan })}
-                      </p>
-                    )}
-                  </div>
-                  <div className="rounded-card border border-border bg-surface p-4">
-                    <p className="text-sm text-text-muted">{t('climate.avgRain')}</p>
-                    <p className="mt-1 font-display text-4xl font-semibold tabular-nums text-data-precip">
-                      <CountUp value={pMean} suffix=" mm" />
-                    </p>
-                    <p className="text-sm text-text-muted">{t('climate.perYear')}</p>
-                  </div>
-                </div>
-                <div className="rounded-card border border-border bg-surface p-5">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h3 className="text-lg">{t('climate.plainWords')}</h3>
-                    <Badge type="historical" />
-                  </div>
-                  <ul className="mt-3 space-y-3">
-                    {points.map((tk) => {
-                      const Icon = TAKEAWAY_ICON[tk.variable]
-                      const Dir = DIRECTION_ICON[tk.direction]
-                      return (
-                        <li key={tk.variable} className="flex gap-3">
-                          <Icon size={20} aria-hidden="true" className="mt-0.5 shrink-0 text-accent-text" />
-                          <span className="flex-1 text-text">{tm(tk.msg)}</span>
-                          {tk.variable !== 'record' && <Dir size={18} aria-hidden="true" className="mt-1 shrink-0 text-text-muted" />}
-                        </li>
-                      )
-                    })}
-                  </ul>
-                </div>
+                  )}
+                </Reveal>
+                <Reveal delay={0.1} className="rounded-card border border-border bg-surface p-5">
+                  <p className="text-sm text-text-muted">{t('climate.avgRain')}</p>
+                  <p className="mt-1 font-display text-5xl font-semibold tabular-nums text-data-precip">
+                    <CountUp value={pMean} suffix=" mm" />
+                  </p>
+                  <p className="text-sm text-text-muted">{t('climate.perYear')}</p>
+                </Reveal>
               </div>
-            </Reveal>
+              <Reveal delay={0.15} className="rounded-card border border-border bg-surface p-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-lg">{t('climate.plainWords')}</h3>
+                  <Badge type="historical" />
+                </div>
+                <ul className="mt-3 space-y-3">
+                  {points.map((tk, i) => {
+                    const Icon = TAKEAWAY_ICON[tk.variable]
+                    const Dir = DIRECTION_ICON[tk.direction]
+                    return (
+                      <m.li
+                        key={tk.variable}
+                        className="flex gap-3"
+                        initial={{ opacity: 0, x: -14 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.7, delay: 0.2 + i * 0.15, ease: EASE }}
+                      >
+                        <Icon size={20} aria-hidden="true" className="mt-0.5 shrink-0 text-accent-text" />
+                        <span className="flex-1 text-text">{tm(tk.msg)}</span>
+                        {tk.variable !== 'record' && <Dir size={18} aria-hidden="true" className="mt-1 shrink-0 text-text-muted" />}
+                      </m.li>
+                    )
+                  })}
+                </ul>
+              </Reveal>
+            </div>
           )}
 
           {status === 'cached' && climate?.cachedFrom && (
@@ -342,7 +359,7 @@ export default function ResultsPage() {
           <ul className="grid gap-4 lg:grid-cols-3">
             {(['temperature', 'precipitation', 'soilWetness'] as const).map((variable, i) => (
               <li key={variable} className="min-w-0">
-                <Reveal delay={i * 0.06} className="h-full">
+                <Reveal delay={i * 0.12} className="h-full">
                   <ChartCard
                     variable={variable}
                     status={status}
@@ -361,26 +378,38 @@ export default function ResultsPage() {
       </section>
 
       {/* ---------- Compare plans ---------- */}
-      <Section labelledBy="plans-title">
-        <SectionHeading id="plans-title" eyebrow={t('compare.eyebrow')} title={rec.currentIsReference ? t('compare.titleRef') : t('compare.title')}>
+      <Container className="pt-section">
+        <SectionTitle
+          id="plans-title"
+          eyebrow={t('compare.eyebrow')}
+          line1={rec.currentIsReference ? t('compare.titleRef1') : t('compare.title1')}
+          line2={t('compare.title2')}
+        >
           {t('compare.text')}
-        </SectionHeading>
-        <p className="mb-3 text-sm text-text-muted lg:hidden" aria-hidden="true">
+        </SectionTitle>
+        <p className="mb-3 mt-4 text-sm text-text-muted lg:hidden" aria-hidden="true">
           {t('compare.swipe')}
         </p>
-      </Section>
+      </Container>
 
-      <div className="mx-auto w-full max-w-content">
+      <div className="mx-auto mt-6 w-full max-w-content">
         <div
           ref={railRef}
           role="group"
           aria-label={t('compare.group')}
           className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-[var(--space-gutter)] px-gutter pb-4 pt-1 lg:grid lg:grid-cols-2 lg:overflow-visible"
         >
-          {cards.map((plan) => (
-            <div key={plan.id} className="w-[88%] max-w-sm shrink-0 snap-center lg:w-auto lg:max-w-none">
+          {cards.map((plan, i) => (
+            <m.div
+              key={plan.id}
+              className="w-[88%] max-w-sm shrink-0 snap-center lg:w-auto lg:max-w-none"
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.9, delay: (i % 2) * 0.15, ease: EASE }}
+            >
               <RotationCard plan={plan} best={plan.id === rec.best.id} comparedToReference={rec.currentIsReference} />
-            </div>
+            </m.div>
           ))}
         </div>
 
@@ -400,57 +429,41 @@ export default function ResultsPage() {
         </div>
       </div>
 
-      {/* ---------- Labels ---------- */}
-      <Section labelledBy="labels-title">
-        <Card padding="lg">
-          <h2 id="labels-title" className="text-xl">
-            {t('labels.title')}
-          </h2>
-          <dl className="mt-4 grid gap-4 sm:grid-cols-2">
-            <div>
-              <dt>
-                <Badge type="historical" />
-              </dt>
-              <dd className="mt-1.5 text-text-muted">{t('labels.historical')}</dd>
-            </div>
-            <div>
-              <dt>
-                <Badge type="answers" />
-              </dt>
-              <dd className="mt-1.5 text-text-muted">{t('labels.answers')}</dd>
-            </div>
-            <div>
-              <dt>
-                <Badge type="guidance" />
-              </dt>
-              <dd className="mt-1.5 text-text-muted">
-                {t('labels.guidance')} <Term id="nitrogenFixation" />
-              </dd>
-            </div>
-            <div>
-              <dt>
-                <Badge type="hypothetical" />
-              </dt>
-              <dd className="mt-1.5 text-text-muted">{t('labels.hypothetical')}</dd>
-            </div>
-          </dl>
-          <div className="mt-6 flex flex-col gap-3 border-t border-border pt-5 sm:flex-row print:hidden">
-            <Button
-              variant="outline"
-              iconLeft={<RotateCcw size={18} />}
-              onClick={() => {
-                reset()
-                navigate('/field')
-              }}
-            >
-              {t('results.another')}
-            </Button>
-            <Button to="/about" variant="ghost" iconLeft={<CircleCheck size={18} />}>
-              {t('results.sources')}
-            </Button>
-          </div>
-        </Card>
-      </Section>
+      {/* ---------- Labels and next steps ---------- */}
+      <Container className="pt-section">
+        <div className="rounded-card border border-border bg-surface px-5 py-1">
+          <AccordionItem title={t('labels.title')} icon={Tag}>
+            <dl className="grid gap-4 sm:grid-cols-2">
+              {(['historical', 'answers', 'guidance', 'hypothetical'] as const).map((type) => (
+                <div key={type}>
+                  <dt>
+                    <Badge type={type} />
+                  </dt>
+                  <dd className="mt-1.5">
+                    {t(`labels.${type}`)} {type === 'guidance' && <Term id="nitrogenFixation" />}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </AccordionItem>
+        </div>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row print:hidden">
+          <Button
+            variant="outline"
+            iconLeft={<RotateCcw size={18} />}
+            onClick={() => {
+              reset()
+              navigate('/field')
+            }}
+          >
+            {t('results.another')}
+          </Button>
+          <Button to="/about" variant="ghost" iconLeft={<CircleCheck size={18} />}>
+            {t('results.sources')}
+          </Button>
+        </div>
+      </Container>
+      <SproutRow className="mt-section h-24 sm:h-32" count={22} />
     </>
   )
 }

@@ -20,7 +20,6 @@ import { CropIcon } from '@/components/ui/CropIcon'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { Term } from '@/components/ui/Term'
 import type { Comparison, Msg, PlanId, PlanResult } from '@/core'
-import { useTilt } from '@/hooks/useTilt'
 import { useT } from '@/i18n'
 import { cx } from '@/lib'
 
@@ -82,7 +81,6 @@ export function RotationCard({ plan, best = false, comparedToReference = false, 
   const { t } = useT()
   const Icon = PLAN_ICONS[plan.id]
   const isBaseline = plan.id === 'current' || plan.id === 'reference'
-  const tilt = useTilt()
   const title = t(`plan.${plan.id}.title`)
   const long = plan.sequence.length > 4
   const vsLabel = isBaseline ? t('plan.howItDoes') : comparedToReference ? t('plan.vsReference') : t('plan.vsCurrent')
@@ -90,9 +88,8 @@ export function RotationCard({ plan, best = false, comparedToReference = false, 
   return (
     <article
       aria-label={title}
-      {...tilt}
       className={cx(
-        'lift flex h-full flex-col overflow-hidden rounded-card border bg-surface shadow-card will-change-transform',
+        'lift flex h-full flex-col overflow-hidden rounded-card border bg-surface shadow-card',
         best ? 'gradient-border border-transparent' : isBaseline ? 'border-dashed border-border-strong' : 'border-border',
         className,
       )}

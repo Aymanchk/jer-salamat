@@ -48,6 +48,7 @@ export default {
         soft: 'var(--color-accent-soft)',
       },
       'on-accent': 'var(--color-on-accent)',
+      wheat: 'var(--color-wheat)',
       danger: {
         DEFAULT: 'var(--color-danger)',
         soft: 'var(--color-danger-soft)',

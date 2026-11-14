@@ -13,6 +13,9 @@ import { cx } from '@/lib'
 import { useSession } from '@/state/session'
 
 interface OptionButtonProps {
+  index: number
+  /** Called when the answer was picked with a tap or click (not with arrow keys). */
+  onPointerPick?: () => void
   option: QuestionOption
   label: string
   hint?: string
@@ -23,14 +26,19 @@ interface OptionButtonProps {
   quiet?: boolean
 }
 
-function OptionButton({ option, label, hint, name, selected, onSelect, quiet }: OptionButtonProps) {
+function OptionButton({ index, onPointerPick, option, label, hint, name, selected, onSelect, quiet }: OptionButtonProps) {
   const Icon = option.icon
   return (
-    <label
+    <m.label
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.15 + index * 0.07, ease: [0.16, 1, 0.3, 1] }}
+      whileTap={{ scale: 0.97 }}
+      onPointerUp={onPointerPick}
       className={cx(
-        'flex min-h-14 cursor-pointer items-center gap-3 rounded-card border-2 p-2 pr-4 sm:min-h-16 sm:p-3 sm:pr-4 transition-colors duration-fast ease-token',
+        'flex min-h-14 cursor-pointer items-center gap-3 rounded-card border-2 p-2 pr-4 sm:min-h-16 sm:p-3 sm:pr-4 transition-[border-color,background-color,transform] duration-base ease-token',
         'has-[:focus-visible]:outline has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus',
-        selected ? 'border-selected bg-primary-soft shadow-glow-soft' : 'border-border bg-surface hover:border-border-strong',
+        selected ? 'border-selected bg-primary-soft' : 'border-border bg-surface hover:-translate-y-0.5 hover:border-border-strong',
         quiet && !selected && 'border-dashed',
       )}
     >
@@ -55,9 +63,13 @@ function OptionButton({ option, label, hint, name, selected, onSelect, quiet }: 
           selected ? 'border-selected bg-accent text-on-accent' : 'border-border-strong',
         )}
       >
-        {selected && <Check size={16} strokeWidth={3} />}
+        {selected && (
+          <m.span initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 400, damping: 15 }}>
+            <Check size={16} strokeWidth={3} />
+          </m.span>
+        )}
       </span>
-    </label>
+    </m.label>
   )
 }
 
@@ -115,6 +127,18 @@ function Wizard() {
   const back = () => (index === 0 ? navigate('/field') : go(-1))
   const select = (value: string) => setAnswer(question.id, value as FarmerAnswers[typeof question.id])
 
+  // A tap on an answer moves on by itself after a short beat, so the farmer just taps through.
+  // Keyboard users still move with Next (arrow keys only change the choice).
+  const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => () => {
+    if (advanceTimer.current) clearTimeout(advanceTimer.current)
+  }, [])
+  const autoNext = () => {
+    if (isLast) return
+    if (advanceTimer.current) clearTimeout(advanceTimer.current)
+    advanceTimer.current = setTimeout(() => go(1), 550)
+  }
+
   return (
     <div className="flex flex-1 flex-col">
       <Container className="flex max-w-2xl flex-1 flex-col pt-4 sm:pt-8">
@@ -124,17 +148,17 @@ function Wizard() {
           {/* Enter-only slide: the new question is readable at once, no blank frame. */}
           <m.fieldset
               key={question.id}
-              initial={{ opacity: 0.5, x: direction * 20 }}
+              initial={{ opacity: 0, x: direction * 48 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.16, ease: [0.2, 0.7, 0.2, 1] }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               className="m-0 min-w-0 border-0 p-0"
             >
               <legend className="mb-4 p-0 sm:mb-5">
-                <h1 ref={headingRef} tabIndex={-1} className="text-2xl outline-none sm:text-3xl">
+                <h1 ref={headingRef} tabIndex={-1} className="text-3xl leading-tight outline-none sm:text-4xl">
                   {t(`q.${question.id}.title`)}
                 </h1>
-                <span className="mt-2 block text-lg text-text">{t(`q.${question.id}.help`)}</span>
-                <span className="mt-2 flex items-start gap-2 text-text-muted">
+                <span className="mt-2 block text-lg text-text-muted">{t(`q.${question.id}.help`)}</span>
+                <span className="mt-3 flex items-start gap-2 rounded-control bg-surface-muted px-3 py-2 text-sm text-text-muted">
                   <Lightbulb size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-accent-text" />
                   <span>
                     <span className="sr-only">{t('q.whyLabel')} </span>
@@ -144,9 +168,11 @@ function Wizard() {
               </legend>
 
               <div className="grid gap-2 sm:grid-cols-2 sm:gap-3">
-                {question.options.map((option) => (
+                {question.options.map((option, i) => (
                   <OptionButton
                     key={option.value}
+                    index={i}
+                    onPointerPick={autoNext}
                     option={option}
                     label={t(`opt.${question.id}.${option.value}`)}
                     hint={option.hasHint ? t(`opt.${question.id}.${option.value}.hint`) : undefined}
@@ -157,6 +183,8 @@ function Wizard() {
                 ))}
                 <div className="sm:col-span-2">
                   <OptionButton
+                    index={question.options.length}
+                    onPointerPick={autoNext}
                     option={UNKNOWN_OPTION}
                     label={t('opt.unknown')}
                     name={question.id}
