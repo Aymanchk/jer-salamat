@@ -398,11 +398,11 @@ function Earth({ progress, dense, wide }: EarthProps) {
     // Wide screens: globe on the right of the text. Phones: globe in the top half, smaller.
     const narrow = size.width / size.height < 0.9
     const offsetX = wide ? lerp(1.3, 0, smooth(0.05, 0.55, p)) : 0
-    const offsetY = wide ? 0 : lerp(narrow ? 0.95 : 0.6, 0, smooth(0.05, 0.55, p))
+    const offsetY = wide ? 0 : lerp(narrow ? 1.75 : 0.9, 0, smooth(0.05, 0.55, p))
     g.position.set(offsetX, offsetY, 0)
 
     // Camera: far orbit → close, oblique look at the valley surface.
-    const far = wide ? 5.0 : narrow ? 6.2 : 5.0
+    const far = wide ? 5.0 : narrow ? 6.6 : 5.4
     const dist = lerp(far + (1 - intro) * 1.2, 1.24, easeOutCubic(dive))
     const tilt = smooth(0.62, 1, p)
     camera.position.set(0, lerp(0, -0.42, tilt), dist)

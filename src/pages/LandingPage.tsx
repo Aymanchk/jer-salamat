@@ -47,14 +47,14 @@ function HeroCopy({ onHow }: { onHow: () => void }) {
         <Satellite size={16} aria-hidden="true" />
         NASA climate data · Chuy Valley
       </p>
-      <h1 id="hero-title" className="text-[2.5rem] leading-[1.02] sm:text-5xl lg:text-6xl">
+      <h1 id="hero-title" className="text-[2.25rem] leading-[1.02] sm:text-5xl lg:text-6xl">
         <Lines lines={['Climate in the', 'Chuy Valley is', 'changing.']} />
         <Lines lines={[<span key="k" className="text-accent-text">Know what to plant next.</span>]} />
       </h1>
-      <p className="mt-5 max-w-md text-lg text-text-muted">
+      <p className="mt-4 max-w-md text-base text-text-muted sm:mt-5 sm:text-lg">
         Pick your field, answer 5 questions and get a crop rotation plan built on 40 years of NASA climate records. Free, no sign-up.
       </p>
-      <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="mt-5 flex flex-col gap-2 sm:mt-7 sm:flex-row sm:items-center sm:gap-3">
         <Button to="/field" size="lg" iconRight={<ArrowRight size={22} />} className="w-full sm:w-auto">
           Check my field
         </Button>
@@ -149,14 +149,14 @@ function OrbitStory({ onHow }: { onHow: () => void }) {
         </div>
 
         {/* Scrims keep text off the busy globe. */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,var(--color-bg)_0%,rgb(7_11_10/0.85)_30%,transparent_62%)] max-lg:hidden" />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(0deg,var(--color-bg)_0%,rgb(7_11_10/0.9)_38%,transparent_70%)] lg:hidden" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,var(--color-bg)_0%,color-mix(in_srgb,var(--color-bg)_85%,transparent)_30%,transparent_62%)] max-lg:hidden" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(0deg,var(--color-bg)_0%,var(--color-bg)_60%,color-mix(in_srgb,var(--color-bg)_70%,transparent)_72%,transparent_86%)] lg:hidden" />
 
         <Container className="relative h-full">
           {/* Scene 1: the headline. Visible immediately. */}
           <m.div
             style={{ opacity: heroOpacity, y: heroY }}
-            className="absolute inset-x-gutter bottom-[max(5rem,10vh)] max-w-xl lg:bottom-auto lg:top-1/2 lg:-translate-y-1/2"
+            className="absolute inset-x-gutter bottom-[max(3.25rem,6vh)] max-w-xl lg:bottom-auto lg:top-1/2 lg:-translate-y-1/2"
           >
             <HeroCopy onHow={onHow} />
           </m.div>
