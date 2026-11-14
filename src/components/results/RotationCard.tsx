@@ -155,6 +155,7 @@ export function RotationCard({ plan, best = false, comparedToReference = false, 
                   <Term id="waterNeed">{t('plan.dim.water')}</Term>
                 </span>
                 <span className="block text-sm text-text-muted">
+                  {plan.waterLevel ? `${t(`plan.water.${plan.waterLevel}`)} · ` : ''}
                   {plan.water
                     ? plan.water.missing.length > 0
                       ? t('plan.water.rangePartial', {
@@ -186,8 +187,9 @@ export function RotationCard({ plan, best = false, comparedToReference = false, 
                 <span className="block font-bold text-text">{t('plan.dim.income')}</span>
                 <span className="block text-sm text-text-muted">{t('plan.income.none')}</span>
               </dt>
-              <dd>
-                <InfoTooltip label={t('plan.income.none')} align="right">
+              <dd className="flex items-center gap-1.5">
+                <span className="text-xs font-semibold text-text-muted">{t('plan.income.status')}</span>
+                <InfoTooltip label={t('plan.income.status')} align="right">
                   {t('plan.income.info')}
                 </InfoTooltip>
               </dd>

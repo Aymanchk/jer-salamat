@@ -210,6 +210,31 @@ export default function ResultsPage() {
                 </div>
               </div>
             </div>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <div className="rounded-control border border-border bg-bg-2 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-base font-bold text-heading">{t('results.nasaFactorsTitle')}</h3>
+                  <Badge type="historical" />
+                </div>
+                <ul className="mt-2 list-disc space-y-1.5 pl-4 text-sm text-text">
+                  {rec.nasaFactors.map((m) => (
+                    <li key={m.key}>{tm(m)}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="rounded-control border border-border bg-bg-2 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-base font-bold text-heading">{t('results.assumptionsTitle')}</h3>
+                  <Badge type="guidance">{t('badge.preliminary')}</Badge>
+                </div>
+                <ul className="mt-2 list-disc space-y-1.5 pl-4 text-sm text-text">
+                  {rec.assumptions.map((m) => (
+                    <li key={m.key}>{tm(m)}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           </div>
         </section>
 
