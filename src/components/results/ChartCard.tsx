@@ -13,15 +13,16 @@ import {
   type ChartOptions,
 } from 'chart.js'
 import { CloudRain, DatabaseBackup, Droplets, Thermometer, type LucideIcon } from 'lucide-react'
-import { useReducedMotion } from 'motion/react'
-import { useMemo } from 'react'
+import { useInView, useReducedMotion } from 'motion/react'
+import { useMemo, useRef } from 'react'
 import { Chart } from 'react-chartjs-2'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
+import { Term } from '@/components/ui/Term'
 import { LoadingSkeleton } from '@/components/ui/LoadingSkeleton'
 import { ErrorState } from '@/components/ui/States'
-import type { ClimateVariable } from '@/core'
+import { trendLine, type ClimatePoint, type ClimateTrend, type ClimateVariable } from '@/core'
 import { useTokens } from '@/hooks/useTokens'
 
 ChartJS.register(
@@ -99,54 +100,43 @@ const TOKEN_NAMES = [
   '--font-family-sans',
 ] as const
 
-/** Straight line through the data, for drawing only. Real statistics live in src/core. */
-function fitLine(values: number[]): number[] {
-  const n = values.length
-  const meanX = (n - 1) / 2
-  const meanY = values.reduce((a, b) => a + b, 0) / n
-  let num = 0
-  let den = 0
-  values.forEach((y, x) => {
-    num += (x - meanX) * (y - meanY)
-    den += (x - meanX) ** 2
-  })
-  const slope = den === 0 ? 0 : num / den
-  return values.map((_, x) => meanY + slope * (x - meanX))
-}
-
 interface ChartCardProps {
   variable: ClimateVariable
   status: ChartStatus
-  years: number[]
-  values: number[]
+  points: ClimatePoint[]
+  trend?: ClimateTrend
   /** One plain sentence that says what the chart shows. */
   summary: string
-  /** True while the values are a design sketch. Hides all numbers. */
-  placeholder?: boolean
-  /** Draws a hypothetical overlay line (the "what if" toggle). */
-  scenarioLabel?: string
+  /** Hypothetical overlay: added to the trend line (the "what if +2°C" toggle). */
+  scenario?: { label: string; offset: number }
   onRetry?: () => void
 }
 
-export function ChartCard({
-  variable,
-  status,
-  years,
-  values,
-  summary,
-  placeholder = false,
-  scenarioLabel,
-  onRetry,
-}: ChartCardProps) {
+function formatSlope(variable: ClimateVariable, trend: ClimateTrend): string {
+  const v = trend.slopePerDecade
+  const sign = v > 0 ? '+' : v < 0 ? '−' : ''
+  const abs = Math.abs(v)
+  if (variable === 'temperature') return `${sign}${abs.toFixed(2)} °C per decade`
+  if (variable === 'precipitation') return `${sign}${abs.toFixed(0)} mm per decade`
+  return `${sign}${abs.toFixed(3)} per decade`
+}
+
+export function ChartCard({ variable, status, points, trend, summary, scenario, onRetry }: ChartCardProps) {
   const meta = VARIABLES[variable]
   const tokens = useTokens(TOKEN_NAMES)
   const reducedMotion = useReducedMotion()
   const Icon = meta.icon
+  const chartRef = useRef<HTMLDivElement>(null)
+  // Charts draw in when they scroll into view.
+  const inView = useInView(chartRef, { once: true, margin: '0px 0px -60px 0px' })
+  const years = points.map((p) => p.year)
+  const values = points.map((p) => p.value)
+  const scenarioLabel = scenario?.label
 
   const data = useMemo<ChartData<'bar' | 'line', number[], number>>(() => {
     const color = tokens[meta.colorToken]
     const soft = tokens[meta.softToken]
-    const trend = fitLine(values)
+    const trend = trendLine(points)
     const datasets: ChartData<'bar' | 'line', number[], number>['datasets'] = [
       {
         type: 'line',
@@ -155,17 +145,17 @@ export function ChartCard({
         borderColor: tokens['--data-trend'],
         borderWidth: 2,
         borderDash: [6, 5],
+        tension: 0,
         pointRadius: 0,
         pointHitRadius: 0,
         order: 0,
       },
     ]
-    if (scenarioLabel) {
-      const lift = (Math.max(...values) - Math.min(...values)) * 0.45
+    if (scenario) {
       datasets.push({
         type: 'line',
-        label: scenarioLabel,
-        data: trend.map((v) => v + lift),
+        label: scenario.label,
+        data: trend.map((v) => v + scenario.offset),
         borderColor: tokens['--data-scenario'],
         borderWidth: 2,
         borderDash: [2, 4],
@@ -196,26 +186,34 @@ export function ChartCard({
         borderWidth: 2.5,
         tension: 0.25,
         pointRadius: 0,
-        pointHoverRadius: placeholder ? 0 : 5,
+        pointHoverRadius: 5,
         pointBackgroundColor: color,
         order: 1,
       })
     }
     return { labels: years, datasets }
-  }, [tokens, meta, values, years, scenarioLabel, placeholder])
+  }, [tokens, meta, values, years, points, scenario])
 
   const options = useMemo<ChartOptions<'bar' | 'line'>>(() => {
     const tick = { color: tokens['--color-text-muted'], font: { family: tokens['--font-family-sans'], size: 13 } }
     return {
       responsive: true,
       maintainAspectRatio: false,
-      animation: reducedMotion ? false : { duration: 400, easing: 'easeOutCubic' },
+      animation: reducedMotion ? false : { duration: 900, easing: 'easeOutQuart' },
       interaction: { mode: 'index', intersect: false },
-      events: placeholder ? [] : ['mousemove', 'mouseout', 'click', 'touchstart', 'touchmove'],
+      events: ['mousemove', 'mouseout', 'click', 'touchstart', 'touchmove'],
       plugins: {
         legend: { display: false },
         tooltip: {
-          enabled: !placeholder,
+          enabled: true,
+          callbacks: {
+            label: (ctx) => {
+              const v = ctx.parsed.y
+              if (v === null || v === undefined) return ''
+              const shown = variable === 'temperature' ? `${v.toFixed(1)} °C` : variable === 'precipitation' ? `${v.toFixed(0)} mm` : v.toFixed(2)
+              return `${ctx.dataset.label}: ${shown}`
+            },
+          },
           backgroundColor: tokens['--color-text'],
           titleColor: tokens['--color-surface'],
           bodyColor: tokens['--color-surface'],
@@ -230,18 +228,15 @@ export function ChartCard({
           ticks: { ...tick, maxRotation: 0, autoSkip: true, maxTicksLimit: 5 },
         },
         y: {
-          // A sketch must not look like measurements: no numbers on the axis.
-          min: placeholder ? 0 : undefined,
-          max: placeholder ? 1 : undefined,
           grid: { color: tokens['--data-grid'] },
           border: { display: false },
-          ticks: { ...tick, display: !placeholder, maxTicksLimit: 5 },
+          ticks: { ...tick, maxTicksLimit: 5 },
         },
       },
     }
-  }, [tokens, reducedMotion, placeholder])
+  }, [tokens, reducedMotion, variable])
 
-  const yearSpan = `${years[0]}–${years[years.length - 1]}`
+  const yearSpan = years.length ? `${years[0]}–${years[years.length - 1]}` : '1986–2025'
 
   return (
     <Card as="article" className="flex h-full flex-col gap-4">
@@ -250,7 +245,9 @@ export function ChartCard({
           <Icon size={22} />
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="text-lg leading-snug">{meta.title}</h3>
+          <h3 className="text-lg leading-snug">
+            {variable === 'soilWetness' ? <Term id="rootZone" align="right" /> : meta.title}
+          </h3>
           <p className="text-sm text-text-muted">
             {meta.unit} · {yearSpan}
           </p>
@@ -258,9 +255,14 @@ export function ChartCard({
         <InfoTooltip label={`About ${meta.title.toLowerCase()}`}>{meta.info}</InfoTooltip>
       </header>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Badge type="historical" />
-        {placeholder && <Badge type="placeholder" />}
+        {trend && (status === 'ready' || status === 'cached') && (
+          <span className="text-sm font-bold tabular-nums text-accent-text">
+            Trend: {formatSlope(variable, trend)}
+            {!trend.significant && <span className="font-normal text-text-muted"> (not clear)</span>}
+          </span>
+        )}
       </div>
 
       {status === 'loading' && <LoadingSkeleton variant="chart" label={`Loading ${meta.title.toLowerCase()}`} />}
@@ -276,18 +278,18 @@ export function ChartCard({
           {status === 'cached' && (
             <p role="status" className="flex items-start gap-2 rounded-control bg-accent-soft p-3 text-sm text-text">
               <DatabaseBackup size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-accent-text" />
-              NASA data is temporarily unavailable, showing cached data.
+              Live NASA data is not reachable right now. Showing saved NASA POWER data for this area.
             </p>
           )}
 
-          <div className="relative h-44 sm:h-52">
-            <Chart
+          <div ref={chartRef} className="relative h-44 sm:h-52">
+            {inView && <Chart
               type="bar"
               data={data as ChartData<'bar', number[], number>}
               options={options as ChartOptions<'bar'>}
               role="img"
               aria-label={`${meta.title}, ${yearSpan}. ${summary}`}
-            />
+            />}
           </div>
 
           <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-text-muted" aria-label="Chart legend">
@@ -297,7 +299,7 @@ export function ChartCard({
             </li>
             <li className="inline-flex items-center gap-2">
               <span aria-hidden="true" className="w-5 border-t-2 border-dashed border-text" />
-              Trend
+              <Term id="trend">Trend</Term>
             </li>
             {scenarioLabel && (
               <li className="inline-flex items-center gap-2">
@@ -308,9 +310,6 @@ export function ChartCard({
           </ul>
 
           <p className="border-t border-border pt-3 text-text">{summary}</p>
-          {placeholder && (
-            <p className="text-sm text-text-muted">Sketch only. The shape and trend are not real data.</p>
-          )}
         </>
       )}
 

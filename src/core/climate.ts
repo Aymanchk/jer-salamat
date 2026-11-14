@@ -1,0 +1,247 @@
+/**
+ * NASA POWER client and climate statistics. Framework-free (no React).
+ *
+ * Source: NASA POWER monthly point API, community AG.
+ * T2M (°C), PRECTOTCORR (mm/day), GWETROOT (0–1).
+ */
+import type { ClimatePoint, ClimateSeries, ClimateTrend, ClimateVariable, FieldLocation } from './types'
+
+export const YEAR_START = 1986
+export const YEAR_END = 2025
+
+const API = 'https://power.larc.nasa.gov/api/temporal/monthly/point'
+const PARAMS: Record<ClimateVariable, string> = {
+  temperature: 'T2M',
+  precipitation: 'PRECTOTCORR',
+  soilWetness: 'GWETROOT',
+}
+const UNITS: Record<ClimateVariable, string> = {
+  temperature: '°C',
+  precipitation: 'mm',
+  soilWetness: '0–1',
+}
+const FILL = -999
+
+export interface PowerResponse {
+  properties: { parameter: Record<string, Record<string, number>> }
+}
+
+export interface DemoPoint extends FieldLocation {
+  id: string
+  name: string
+}
+
+export interface ClimateData {
+  series: Record<ClimateVariable, ClimateSeries>
+  trends: Record<ClimateVariable, ClimateTrend>
+  /** True when the live API failed and cached demo data is shown. */
+  cached: boolean
+  /** Which cached point was used, when cached. */
+  cachedFrom?: string
+}
+
+function daysInMonth(year: number, month: number): number {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate()
+}
+
+/** Monthly values → one value per year. Temperature and soil: mean. Precipitation: yearly total in mm. */
+export function toYearly(monthly: Record<string, number>, variable: ClimateVariable): ClimatePoint[] {
+  const byYear = new Map<number, Array<{ month: number; value: number }>>()
+  for (const [key, value] of Object.entries(monthly)) {
+    const year = Number(key.slice(0, 4))
+    const month = Number(key.slice(4))
+    if (month < 1 || month > 12 || value === FILL || !Number.isFinite(value)) continue
+    if (year < YEAR_START || year > YEAR_END) continue
+    const list = byYear.get(year) ?? []
+    list.push({ month, value })
+    byYear.set(year, list)
+  }
+  const points: ClimatePoint[] = []
+  for (const [year, months] of [...byYear.entries()].sort((a, b) => a[0] - b[0])) {
+    if (months.length < 12) continue // skip incomplete years
+    const value =
+      variable === 'precipitation'
+        ? months.reduce((sum, m) => sum + m.value * daysInMonth(year, m.month), 0)
+        : months.reduce((sum, m) => sum + m.value, 0) / months.length
+    points.push({ year, value: Math.round(value * 1000) / 1000 })
+  }
+  return points
+}
+
+/** Ordinary least squares on (year, value). Significance: |t| > 2.02 (about p < 0.05 for 40 years). */
+export function linearTrend(points: ClimatePoint[]): { slope: number; intercept: number; significant: boolean } {
+  const n = points.length
+  if (n < 3) return { slope: 0, intercept: points[0]?.value ?? 0, significant: false }
+  const meanX = points.reduce((s, p) => s + p.year, 0) / n
+  const meanY = points.reduce((s, p) => s + p.value, 0) / n
+  let sxx = 0
+  let sxy = 0
+  for (const p of points) {
+    sxx += (p.year - meanX) ** 2
+    sxy += (p.year - meanX) * (p.value - meanY)
+  }
+  const slope = sxy / sxx
+  const intercept = meanY - slope * meanX
+  const residual = points.reduce((s, p) => s + (p.value - (intercept + slope * p.year)) ** 2, 0)
+  const se = Math.sqrt(residual / (n - 2) / sxx)
+  const t = se === 0 ? 0 : Math.abs(slope / se)
+  return { slope, intercept, significant: t > 2.02 }
+}
+
+export function trendLine(points: ClimatePoint[]): number[] {
+  const { slope, intercept } = linearTrend(points)
+  return points.map((p) => intercept + slope * p.year)
+}
+
+export function parsePower(json: PowerResponse, cached: boolean, cachedFrom?: string): ClimateData {
+  const variables: ClimateVariable[] = ['temperature', 'precipitation', 'soilWetness']
+  const series = {} as Record<ClimateVariable, ClimateSeries>
+  const trends = {} as Record<ClimateVariable, ClimateTrend>
+  for (const variable of variables) {
+    const monthly = json.properties.parameter[PARAMS[variable]] ?? {}
+    const points = toYearly(monthly, variable)
+    series[variable] = { variable, unit: UNITS[variable], points, source: 'nasa-power', cached }
+    const { slope, significant } = linearTrend(points)
+    trends[variable] = { variable, slopePerDecade: slope * 10, significant }
+  }
+  return { series, trends, cached, cachedFrom }
+}
+
+/** NASA POWER cells are 0.5° × 0.625°. A demo cache can stand in for points in the same cell. */
+function nearestDemo(location: FieldLocation, demos: DemoPoint[]): DemoPoint | null {
+  let best: DemoPoint | null = null
+  let bestDist = Infinity
+  for (const d of demos) {
+    const dLat = Math.abs(d.lat - location.lat)
+    const dLon = Math.abs(d.lon - location.lon)
+    if (dLat > 0.25 || dLon > 0.3125) continue
+    const dist = dLat ** 2 + dLon ** 2
+    if (dist < bestDist) {
+      best = d
+      bestDist = dist
+    }
+  }
+  return best
+}
+
+async function fetchJson(url: string, timeoutMs: number): Promise<PowerResponse> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const res = await fetch(url, { signal: controller.signal })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return (await res.json()) as PowerResponse
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+/**
+ * Loads 1986–2025 climate for a point.
+ * Tries the live NASA POWER API first; if it is slow or fails, uses the cached
+ * JSON of a demo point in the same NASA grid cell. Throws if neither works.
+ */
+export async function loadClimate(
+  location: FieldLocation,
+  demos: DemoPoint[],
+  options: { timeoutMs?: number; cacheBase?: string } = {},
+): Promise<ClimateData> {
+  const { timeoutMs = 12000, cacheBase = '/data' } = options
+  const lat = location.lat.toFixed(4)
+  const lon = location.lon.toFixed(4)
+  const url =
+    `${API}?parameters=T2M,PRECTOTCORR,GWETROOT&community=AG` +
+    `&longitude=${lon}&latitude=${lat}&start=${YEAR_START}&end=${YEAR_END}&format=JSON`
+
+  // Demo points load from the cache first: instant and reliable on stage.
+  const demo = nearestDemo(location, demos)
+  const exactDemo = demo && Math.abs(demo.lat - location.lat) < 1e-4 && Math.abs(demo.lon - location.lon) < 1e-4
+  if (exactDemo) {
+    try {
+      return parsePower(await fetchJson(`${cacheBase}/${demo.id}.json`, 5000), false)
+    } catch {
+      // fall through to the live API
+    }
+  }
+
+  try {
+    return parsePower(await fetchJson(url, timeoutMs), false)
+  } catch (liveError) {
+    if (!demo) throw liveError
+    const json = await fetchJson(`${cacheBase}/${demo.id}.json`, 5000)
+    return parsePower(json, true, demo.name)
+  }
+}
+
+/* ---------- Plain-language takeaways ---------- */
+
+export interface Takeaway {
+  variable: ClimateVariable
+  text: string
+  direction: 'up' | 'down' | 'flat'
+}
+
+function first10(points: ClimatePoint[]): number {
+  const slice = points.slice(0, 10)
+  return slice.reduce((s, p) => s + p.value, 0) / slice.length
+}
+function last10(points: ClimatePoint[]): number {
+  const slice = points.slice(-10)
+  return slice.reduce((s, p) => s + p.value, 0) / slice.length
+}
+
+/** Three short bullet points for farmers: what changed in 40 years. */
+export function takeaways(data: ClimateData): Takeaway[] {
+  const out: Takeaway[] = []
+  const t = data.series.temperature.points
+  const p = data.series.precipitation.points
+  const s = data.series.soilWetness.points
+  const years = t.length > 0 ? t[t.length - 1].year - t[0].year : 0
+
+  const tChange = data.trends.temperature.slopePerDecade * (years / 10)
+  if (data.trends.temperature.significant && Math.abs(tChange) >= 0.3) {
+    out.push({
+      variable: 'temperature',
+      direction: tChange > 0 ? 'up' : 'down',
+      text:
+        tChange > 0
+          ? `It got warmer: the yearly average rose by about ${tChange.toFixed(1)} °C since ${t[0].year}. Warmer air pulls more water out of fields and crops.`
+          : `It got cooler: the yearly average fell by about ${Math.abs(tChange).toFixed(1)} °C since ${t[0].year}.`,
+    })
+  } else {
+    out.push({ variable: 'temperature', direction: 'flat', text: 'Yearly average temperature shows no clear change over 40 years.' })
+  }
+
+  const pBefore = first10(p)
+  const pAfter = last10(p)
+  const pPct = ((pAfter - pBefore) / pBefore) * 100
+  if (data.trends.precipitation.significant && Math.abs(pPct) >= 5) {
+    out.push({
+      variable: 'precipitation',
+      direction: pPct > 0 ? 'up' : 'down',
+      text: `Rain and snow ${pPct > 0 ? 'increased' : 'decreased'}: the last 10 years had about ${Math.abs(pPct).toFixed(0)}% ${pPct > 0 ? 'more' : 'less'} than the first 10 years.`,
+    })
+  } else {
+    out.push({
+      variable: 'precipitation',
+      direction: 'flat',
+      text: `Rain and snow vary a lot from year to year (${Math.round(Math.min(...p.map((x) => x.value)))}–${Math.round(Math.max(...p.map((x) => x.value)))} mm), with no clear long-term trend. Dry years can come at any time.`,
+    })
+  }
+
+  const sBefore = first10(s)
+  const sAfter = last10(s)
+  if (data.trends.soilWetness.significant && Math.abs(sAfter - sBefore) >= 0.01) {
+    out.push({
+      variable: 'soilWetness',
+      direction: sAfter > sBefore ? 'up' : 'down',
+      text:
+        sAfter > sBefore
+          ? 'The root zone got a little wetter on average.'
+          : 'The root zone got drier: there is less water in the soil where roots grow than in the 1980s–90s.',
+    })
+  } else {
+    out.push({ variable: 'soilWetness', direction: 'flat', text: 'Root zone soil wetness shows no clear long-term change.' })
+  }
+  return out
+}
