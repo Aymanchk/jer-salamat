@@ -122,7 +122,7 @@ export default function ResultsPage() {
         </div>
 
         <section id="recommendation" aria-labelledby="rec-title" className="mt-6 scroll-mt-32">
-          <Reveal>
+          <div>
             <div className="gradient-border rounded-card bg-surface p-5 shadow-card sm:p-8">
               <div className="flex flex-wrap gap-2">
                 <Badge type="answers" />
@@ -172,7 +172,7 @@ export default function ResultsPage() {
                 </div>
               </div>
             </div>
-          </Reveal>
+          </div>
         </section>
 
         {/* What the farmer entered */}
@@ -293,7 +293,7 @@ export default function ResultsPage() {
           ref={railRef}
           role="group"
           aria-label="Rotation plans"
-          className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-[var(--space-gutter)] px-gutter pb-4 pt-1 lg:grid lg:grid-cols-2 lg:overflow-visible xl:grid-cols-4"
+          className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-[var(--space-gutter)] px-gutter pb-4 pt-1 lg:grid lg:grid-cols-2 lg:overflow-visible"
         >
           {cards.map((plan) => (
             <div key={plan.id} className="w-[86%] max-w-sm shrink-0 snap-center lg:w-auto lg:max-w-none">

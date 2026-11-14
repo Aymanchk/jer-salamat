@@ -79,14 +79,14 @@ export function FlowStepper() {
           const clickable = canGo(step, i)
           const Icon = done ? Check : step.icon
           return (
-            <li key={step.id} className="flex min-w-0 flex-1 items-center gap-1 sm:gap-2">
+            <li key={step.id} className={cx('flex min-w-0 items-center gap-1 sm:flex-1 sm:gap-2', active ? 'flex-auto' : 'flex-none')}>
               <button
                 type="button"
                 disabled={!clickable}
                 onClick={() => go(step)}
                 aria-current={active ? 'step' : undefined}
                 className={cx(
-                  'flex min-h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-pill px-2 text-sm font-bold transition-colors duration-fast sm:justify-start sm:px-3',
+                  'flex min-h-11 min-w-11 flex-1 items-center justify-center gap-1.5 rounded-pill px-2 text-sm font-bold transition-colors duration-fast sm:justify-start sm:px-3',
                   active && 'neon-chip text-on-accent',
                   !active && done && 'text-heading hover:bg-primary-soft',
                   !active && !done && 'text-text-muted',
@@ -105,7 +105,7 @@ export function FlowStepper() {
                 <span className={cx('truncate', !active && 'max-sm:sr-only')}>{step.label}</span>
                 {done && <span className="sr-only"> (done)</span>}
               </button>
-              {i < STEPS.length - 1 && <span aria-hidden="true" className="h-px w-2 shrink-0 bg-border-strong sm:w-4" />}
+              {i < STEPS.length - 1 && <span aria-hidden="true" className="h-px w-3 shrink-0 bg-border-strong sm:w-4" />}
             </li>
           )
         })}

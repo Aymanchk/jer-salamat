@@ -112,7 +112,7 @@ export default function FieldPage() {
             <div className="min-w-0 flex-1" aria-live="polite">
               <p className="text-sm text-text-muted">{placeName ?? 'Your field'}</p>
               {field ? (
-                <p className="whitespace-nowrap font-bold tabular-nums text-text">{formatCoords(field.lat, field.lon)}</p>
+                <p className="truncate text-sm font-bold tabular-nums text-text sm:text-base">{formatCoords(field.lat, field.lon)}</p>
               ) : (
                 <p className="font-bold text-text-muted">No pin yet</p>
               )}
@@ -122,14 +122,15 @@ export default function FieldPage() {
               onClick={useMyLocation}
               disabled={gps === 'asking'}
               aria-describedby="gps-note"
-              className="inline-flex min-h-tap shrink-0 items-center gap-2 rounded-pill border-2 border-border-strong px-3 text-sm font-bold text-text hover:border-selected hover:bg-primary-soft"
+              aria-label="Use my location"
+              className="inline-flex min-h-tap min-w-tap shrink-0 items-center justify-center gap-2 rounded-pill border-2 border-border-strong px-3 text-sm font-bold text-text hover:border-selected hover:bg-primary-soft"
             >
               {gps === 'asking' ? (
                 <LoaderCircle size={18} aria-hidden="true" className="animate-spin" />
               ) : (
                 <LocateFixed size={18} aria-hidden="true" />
               )}
-              My location
+              <span className="max-sm:hidden">My location</span>
             </button>
           </div>
 
