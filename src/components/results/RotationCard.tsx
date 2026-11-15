@@ -17,7 +17,6 @@ import {
 import { AccordionItem } from '@/components/ui/Accordion'
 import { Badge } from '@/components/ui/Badge'
 import { CropIcon } from '@/components/ui/CropIcon'
-import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { Term } from '@/components/ui/Term'
 import type { Comparison, Msg, PlanId, PlanResult } from '@/core'
 import { useT } from '@/i18n'
@@ -187,19 +186,6 @@ export function RotationCard({ plan, best = false, comparedToReference = false, 
                 ) : (
                   <span className="text-sm text-text-muted">{t('plan.baseline')}</span>
                 )}
-              </dd>
-            </div>
-            <div className="flex items-center gap-3 px-3 py-2.5">
-              <ShoppingBasket size={18} aria-hidden="true" className="shrink-0 text-text-muted" />
-              <dt className="min-w-0 flex-1">
-                <span className="block font-bold text-text">{t('plan.dim.income')}</span>
-                <span className="block text-sm text-text-muted">{t('plan.income.none')}</span>
-              </dt>
-              <dd className="flex items-center gap-1.5">
-                <span className="text-xs font-semibold text-text-muted">{t('plan.income.status')}</span>
-                <InfoTooltip label={t('plan.income.status')} align="right">
-                  {t('plan.income.info')}
-                </InfoTooltip>
               </dd>
             </div>
           </dl>

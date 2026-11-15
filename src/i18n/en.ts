@@ -261,7 +261,7 @@ export const en: Record<string, string> = {
   'plan.water-saving.goal': 'Preliminary guidance: crops that need less water.',
   'plan.soil-health.title': 'Soil health',
   'plan.soil-health.goal': 'Preliminary guidance: build soil fertility for the years ahead.',
-  'plan.economic.title': 'Income-focused (market crops)',
+  'plan.economic.title': 'Market crops',
   'plan.economic.goal': 'Preliminary guidance: crops commonly grown for sale. Income is not estimated.',
   'plan.current.title': 'Your current rotation',
   'plan.current.goal': 'Representative 4-year sequence modeled from the crop pattern you selected, used for comparison.',
