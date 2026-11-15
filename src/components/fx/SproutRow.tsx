@@ -35,7 +35,7 @@ export function SproutRow({ count = 28, className }: SproutRowProps) {
       />
       {Array.from({ length: count }, (_, i) => {
         const x = step * (i + 0.5) + (rand(i) - 0.5) * step * 0.4
-        const h = 40 + rand(i + 7) * 70
+        const h = 30 + rand(i + 7) * 50
         const base = H - 8
         const top = base - h
         const bend = (rand(i + 3) - 0.5) * 18

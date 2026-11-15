@@ -677,7 +677,7 @@ function FinalCta() {
           </Button>
         </m.div>
       </Container>
-      <SproutRow className="mt-6 h-32 sm:h-40" />
+      <SproutRow className="mt-6 h-32 sm:h-40 lg:h-48" />
     </section>
   )
 }

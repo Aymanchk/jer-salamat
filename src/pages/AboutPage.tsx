@@ -169,7 +169,7 @@ export default function AboutPage() {
           </EmptyState>
         )}
       </Section>
-      <SproutRow className="mt-section h-24 sm:h-32" count={22} />
+      <SproutRow className="mt-section h-24 sm:h-32 lg:h-44" count={22} />
     </>
   )
 }
