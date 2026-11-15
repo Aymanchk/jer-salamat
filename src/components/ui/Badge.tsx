@@ -40,7 +40,7 @@ const TYPES: Record<DataProvenance, { label: string; icon: LucideIcon; className
     className: 'bg-surface text-text border-border-strong border-dashed',
   },
   placeholder: {
-    label: 'Placeholder',
+    label: 'Future source',
     icon: Construction,
     className: 'placeholder-stripes text-text border-border-strong uppercase tracking-wide',
   },

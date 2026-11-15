@@ -36,7 +36,7 @@ export const en: Record<string, string> = {
   'badge.estimate': 'Estimate',
   'badge.guidance': 'General guidance',
   'badge.hypothetical': 'Hypothetical scenario',
-  'badge.placeholder': 'Placeholder',
+  'badge.placeholder': 'Future source',
   'badge.preliminary': 'Preliminary guidance',
   'badge.reference': 'Reference (FAO / published)',
   'basis.answers': 'Your answers',

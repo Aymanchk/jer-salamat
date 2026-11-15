@@ -32,7 +32,7 @@ export const ru: Record<string, string> = {
   'badge.estimate': 'Оценка',
   'badge.guidance': 'Общие рекомендации',
   'badge.hypothetical': 'Условный сценарий',
-  'badge.placeholder': 'Черновик',
+  'badge.placeholder': 'В планах',
   'badge.preliminary': 'Предварительная рекомендация',
   'badge.reference': 'Справка (ФАО / публикация)',
   'basis.answers': 'Ваши ответы',
